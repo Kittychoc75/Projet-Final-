@@ -1,0 +1,24 @@
+name: Main Branch Protection
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-main-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch source
+        run: |
+          BRANCH="${{ github.head_ref }}"
+
+          echo "Base branch: ${{ github.base_ref }}"
+          echo "Head branch: $BRANCH"
+
+          if [[ "$BRANCH" != "release" ]]; then
+            echo "❌ Only 'release' branch can merge into 'main'"
+            exit 1
+          fi
+
+          echo "✅ PR comes from release branch"
