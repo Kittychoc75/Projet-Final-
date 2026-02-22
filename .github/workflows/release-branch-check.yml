@@ -1,0 +1,22 @@
+name: Release Branch Protection
+
+on:
+  pull_request:
+    branches:
+      - release
+
+jobs:
+  validate-release-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if PR comes from develop
+        run: |
+          echo "Base branch: ${{ github.base_ref }}"
+          echo "Head branch: ${{ github.head_ref }}"
+
+          if [[ "${{ github.head_ref }}" != "develop" ]]; then
+            echo "❌ Only 'develop' branch can merge into 'release'"
+            exit 1
+          fi
+
+          echo "✅ PR correctly comes from develop"
