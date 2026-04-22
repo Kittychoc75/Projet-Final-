@@ -4,43 +4,57 @@ import config
 class Perso(pygame.sprite.Sprite):
     def __init__(self, x, y): 
         super().__init__() 
-        self.x = x 
+        self.x = x
         self.y = y 
         self.vitesse = config.VITESSE_PERSO
-        #self.direction = direction
-        self.image = pygame.image.load("images/perso_down.png")
-        self.rect = self.image.get_rect()
-        self.rect.center = (160, 520)
 
-        self.image_down = pygame.image.load("images/perso_down.png") 
-        self.image_up = pygame.image.load("images/perso_up.png")
+        self.image = pygame.image.load("images/perso_front.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.x, self.y)
+
+        self.image_down = pygame.image.load("images/perso_front.png") 
+        self.image_up = pygame.image.load("images/perso_back.png")
         self.image_left = pygame.image.load("images/perso_left.png")
         self.image_right = pygame.image.load("images/perso_right.png")
         
-    def mouvement(self):
+    def mouvement(self, dt):
         pressed_keys = pygame.key.get_pressed() 
+
         if pressed_keys[pygame.K_UP]: 
-            if self.rect.top > 0:
-                self.rect.move_ip(0, -self.vitesse) 
-            #self.direction = "up" 
+            self.y -= self.vitesse * dt
+
+            # Vérification limite en haut
+            if self.y < self.rect.height/2:
+                self.y = self.rect.height/2
+            self.rect.center = (int(self.x), int(self.y))
             self.image = self.image_up
-        elif pressed_keys[pygame.K_DOWN]: 
-            if self.rect.bottom < config.HAUTEUR:
-                self.rect.move_ip(0, self.vitesse) 
-            #self.direction = "down" 
+
+        if pressed_keys[pygame.K_DOWN]: 
+            self.y += self.vitesse * dt 
+
+            # Vérification limite en bas
+            if self.y + self.rect.height/2 > config.HAUTEUR: 
+                self.y = config.HAUTEUR - self.rect.height/2
+            self.rect.center = (int(self.x), int(self.y))
             self.image = self.image_down
-        elif pressed_keys[pygame.K_LEFT]: 
-            if self.rect.left > 0:
-                self.rect.move_ip(-self.vitesse, 0) 
-            #self.direction = "left" 
+
+        if pressed_keys[pygame.K_LEFT]: 
+            self.x -= self.vitesse * dt
+
+            # Vérification limite à gauche
+            if self.x < self.rect.width/2:
+                self.x = self.rect.width/2
+            self.rect.center = (int(self.x), int(self.y))
             self.image = self.image_left
-        elif pressed_keys[pygame.K_RIGHT]: 
-            if self.rect.right < config.LARGEUR:
-                self.rect.move_ip(self.vitesse, 0) 
-            #self.direction = "right" 
+
+        if pressed_keys[pygame.K_RIGHT]: 
+            self.x += self.vitesse * dt 
+
+            # Vérification limite à droite
+            if self.x + self.rect.width/2 > config.LARGEUR:
+               self.x = config.LARGEUR - self.rect.width/2
+            self.rect.center = (int(self.x), int(self.y))
             self.image = self.image_right
-       
 
     def dessiner(self, surface):
-        self.mouvement()
         surface.blit(self.image, self.rect)
