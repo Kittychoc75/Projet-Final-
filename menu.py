@@ -1,44 +1,41 @@
-import pygame  # Pour faire fonctionner le jeu
-import sys  # Pour quitter proprement
-import subprocess  # Pour lancer des trucs du système
-import os  # Pour gérer les dossiers et fichiers
+import pygame  
+import sys 
+import subprocess  
+import os  
 
 
-# On lance Pygame
 pygame.init()
 
 # Configuration de la fenêtre de jeu
-largeur, hauteur = 1000, 570  # Les dimensions de notre écran
-ecran = pygame.display.set_mode((largeur, hauteur))  # Créer la fenêtre
-pygame.display.set_caption("Pixel Falls")  # Titre de la fenêtre
+largeur, hauteur = 1000, 570  
+ecran = pygame.display.set_mode((largeur, hauteur))  
+pygame.display.set_caption("Pixel Falls") 
 
 # Les couleurs qu'on va utiliser (format RGB)
-BLANC = (255, 255, 255)  # Blanc
-NOIR = (0, 0, 0)  # Noir
-GRIS = (200, 200, 200)  # Gris pour les boutons
+BLANC = (255, 255, 255)  
+NOIR = (0, 0, 0) 
+GRIS = (200, 200, 200)  
 
 # On charge l'image de fond
 arriere_plan = pygame.image.load("fond_menu.JPG")  
 arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))  
 
 # Les polices pour écrire du texte
-police = pygame.font.Font(None, 36)  # Grande police pour les boutons
-petite_police = pygame.font.Font(None, 24)  # Petite police pour le bas de l'écran
+police = pygame.font.Font(None, 36)  
+petite_police = pygame.font.Font(None, 24)  
 
 # Nos quatre boutons (position et texte)
 boutons = [
-    {"texte": "Jouer", "rectangle": pygame.Rect(75, 339, 180, 38)},  # Gauche haut
-    {"texte": "Reset", "rectangle": pygame.Rect(75, 414, 180, 38)},  # Gauche bas
-    {"texte": "Sauvegardes", "rectangle": pygame.Rect(774, 339, 180, 38)},  # Droite haut
-    {"texte": "Paramètres", "rectangle": pygame.Rect(774, 414, 180, 38)}  # Droite bas
+    {"texte": "Jouer", "rectangle": pygame.Rect(75, 339, 180, 38)},  
+    {"texte": "Reset", "rectangle": pygame.Rect(75, 414, 180, 38)},  
+    {"texte": "Sauvegardes", "rectangle": pygame.Rect(774, 339, 180, 38)},  
+    {"texte": "Paramètres", "rectangle": pygame.Rect(774, 414, 180, 38)}  
 ]
 
 # Fonction pour dessiner les boutons
 def dessiner_boutons():
     for bouton in boutons:
-        # Traçer le bouton en gris
         pygame.draw.rect(ecran, GRIS, bouton["rectangle"])
-        # Ajouter une bordure noire
         pygame.draw.rect(ecran, NOIR, bouton["rectangle"], 2)
         # Écrire le texte du bouton
         surface_texte = police.render(bouton["texte"], True, NOIR)
