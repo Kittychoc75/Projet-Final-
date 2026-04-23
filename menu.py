@@ -16,6 +16,24 @@ BLANC = (255, 255, 255)
 NOIR = (0, 0, 0) 
 GRIS = (200, 200, 200)  
 
+# Classe pour les boutons
+class Button:
+    def __init__(self, text, rect):
+        self.text = text
+        self.rect = rect
+
+    def draw(self, screen, font):
+        # Dessiner le bouton
+        pygame.draw.rect(screen, GRIS, self.rect)
+        pygame.draw.rect(screen, NOIR, self.rect, 2)
+        # Écrire le texte
+        text_surf = font.render(self.text, True, NOIR)
+        text_rect = text_surf.get_rect(center=self.rect.center)
+        screen.blit(text_surf, text_rect)
+
+    def is_clicked(self, pos):
+        return self.rect.collidepoint(pos)
+
 # On charge l'image de fond
 arriere_plan = pygame.image.load("fond_menu.JPG")  
 arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))  
@@ -24,23 +42,18 @@ arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))
 police = pygame.font.Font(None, 36)  
 petite_police = pygame.font.Font(None, 24)  
 
-# Nos quatre boutons (position et texte)
+# Nos quatre boutons
 boutons = [
-    {"texte": "Jouer", "rectangle": pygame.Rect(75, 339, 180, 38)},  
-    {"texte": "Reset", "rectangle": pygame.Rect(75, 414, 180, 38)},  
-    {"texte": "Sauvegardes", "rectangle": pygame.Rect(774, 339, 180, 38)},  
-    {"texte": "Paramètres", "rectangle": pygame.Rect(774, 414, 180, 38)}  
+    Button("Jouer", pygame.Rect(75, 339, 180, 38)),
+    Button("Reset", pygame.Rect(75, 414, 180, 38)),
+    Button("Sauvegardes", pygame.Rect(774, 339, 180, 38)),
+    Button("Paramètres", pygame.Rect(774, 414, 180, 38))
 ]
 
 # Fonction pour dessiner les boutons
 def dessiner_boutons():
     for bouton in boutons:
-        pygame.draw.rect(ecran, GRIS, bouton["rectangle"])
-        pygame.draw.rect(ecran, NOIR, bouton["rectangle"], 2)
-        # Écrire le texte du bouton
-        surface_texte = police.render(bouton["texte"], True, NOIR)
-        rect_texte = surface_texte.get_rect(center=bouton["rectangle"].center)
-        ecran.blit(surface_texte, rect_texte)
+        bouton.draw(ecran, police)
 
 # La boucle principale du jeu 
 en_cours = True
@@ -53,14 +66,14 @@ while en_cours:
             # L'utilisateur clique et on vérifie quel bouton
             position_souris = pygame.mouse.get_pos()
             for bouton in boutons:
-                if bouton["rectangle"].collidepoint(position_souris):  # Si c'est un bouton
-                    if bouton["texte"] == "Jouer":
+                if bouton.is_clicked(position_souris):  # Si c'est un bouton
+                    if bouton.text == "Jouer":
                         # Continuer le jeu
                         pass
-                    elif bouton["texte"] == "Paramètres":
+                    elif bouton.text == "Paramètres":
                         # Ouvrir les paramètres
-                        pass
-                    elif bouton["texte"] == "Sauvegardes":
+                        subprocess.run([sys.executable, 'parametres.py'])
+                    elif bouton.text == "Sauvegardes":
                         # Ouvrir le dossier des sauvegardes
                         dossier_sauvegarde = "sauvegardes"
                         if not os.path.exists(dossier_sauvegarde): # Si le dossier n'existe pas, on le crée
@@ -72,7 +85,7 @@ while en_cours:
                         else:
                             pass  # Pour autres plateformes, rien faire
 
-                    elif bouton["texte"] == "Reset":
+                    elif bouton.text == "Reset":
                         # Réinitialiser le jeu
                         pass
 
