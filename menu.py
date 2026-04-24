@@ -2,6 +2,7 @@ import pygame
 import sys
 import subprocess
 import os
+import shutil
 
 pygame.init()
 
@@ -30,7 +31,7 @@ def bouton_clique(bouton, pos):
     return bouton["rectangle"].collidepoint(pos)
 
 # On charge l'image de fond
-arriere_plan = pygame.image.load("fond_menu.JPG")  
+arriere_plan = pygame.image.load("images/fond_menu.JPG")  
 arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))  
 
 # Les polices pour écrire du texte
@@ -81,8 +82,13 @@ while en_cours:
                             pass
 
                     elif bouton["texte"] == "Reset":
-                        # Réinitialiser le jeu
-                        pass
+                        # Supprimer la sauvegarde et recommencer
+                        dossier_sauvegarde = "sauvegardes"
+                        if os.path.exists(dossier_sauvegarde):
+                            shutil.rmtree(dossier_sauvegarde)
+                        # Lancer le jeu frais
+                        subprocess.Popen([sys.executable, 'main.py'])
+                        en_cours = False
 
     # Afficher l'arrière-plan
     ecran.blit(arriere_plan, (0, 0))
