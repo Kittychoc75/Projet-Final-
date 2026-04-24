@@ -16,7 +16,6 @@ BLANC = (255, 255, 255)
 NOIR = (0, 0, 0) 
 GRIS = (200, 200, 200)  
 
-# Fonction pour dessiner un bouton
 
 def dessiner_bouton(bouton):
     pygame.draw.rect(ecran, GRIS, bouton["rectangle"])
@@ -25,12 +24,10 @@ def dessiner_bouton(bouton):
     rect_texte = texte_surf.get_rect(center=bouton["rectangle"].center)
     ecran.blit(texte_surf, rect_texte)
 
-# Fonction pour vérifier si un bouton est cliqué
-
 def bouton_clique(bouton, pos):
     return bouton["rectangle"].collidepoint(pos)
 
-# On charge l'image de fond
+
 arriere_plan = pygame.image.load("images/fond_menu.JPG")  
 arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))  
 
@@ -46,7 +43,6 @@ boutons = [
     {"texte": "Paramètres", "rectangle": pygame.Rect(774, 414, 180, 38)}
 ]
 
-# Fonction pour dessiner les boutons
 def dessiner_boutons():
     for bouton in boutons:
         dessiner_bouton(bouton)
@@ -57,7 +53,7 @@ while en_cours:
     #On regarde les événements
     for evenement in pygame.event.get():
         if evenement.type == pygame.QUIT:
-            en_cours = False  #L'utilisateur a fermé la fenêtre donc le jeu s'arrete
+            en_cours = False  
         elif evenement.type == pygame.MOUSEBUTTONDOWN:
             #L'utilisateur clique et on vérifie quel bouton
             position_souris = pygame.mouse.get_pos()
@@ -82,20 +78,16 @@ while en_cours:
                             pass
 
                     elif bouton["texte"] == "Reset":
-                        # Supprimer la sauvegarde et recommencer
                         dossier_sauvegarde = "sauvegardes"
                         if os.path.exists(dossier_sauvegarde):
                             shutil.rmtree(dossier_sauvegarde)
-                        # Lancer le jeu frais
                         subprocess.Popen([sys.executable, 'main.py'])
                         en_cours = False
 
-    # Afficher l'arrière-plan
     ecran.blit(arriere_plan, (0, 0))
-    # Dessiner les boutons
     dessiner_boutons()
-    pygame.display.flip() # Mettre à jour l'affichage
+    pygame.display.flip() 
 
-# Fermer Pygame
+#Fermer Pygame
 pygame.quit()
 sys.exit() 
