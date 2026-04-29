@@ -56,5 +56,5 @@ class Perso(pygame.sprite.Sprite):
             self.rect.center = (int(self.x), int(self.y))
             self.image = self.image_right
 
-    def dessiner(self, surface):
-        surface.blit(self.image, self.rect)
+    def dessiner_joueur(self, surface, camera_x, camera_y):
+        surface.blit(self.image, (self.x - camera_x, self.y - camera_y))
