@@ -2,7 +2,7 @@ import pygame
 import config
 from gameplay import Gameplay
 
-screen = pygame.display.set_mode((config.LARGEUR, config.HAUTEUR))
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen.fill((255, 255, 255))
 pygame.display.set_caption("Pixel Fall")
 gameplay = Gameplay(screen) 

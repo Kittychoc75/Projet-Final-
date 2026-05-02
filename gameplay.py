@@ -6,7 +6,7 @@ from monde import Monde
 class Gameplay(): 
     def __init__(self, screen):
         self.screen = screen
-        self.perso = Perso(160.0, 300.0)
+        self.perso = Perso(200.0, 700.0)
 
         self.monde = Monde()
         
