@@ -1,8 +1,6 @@
 import pygame
 from pygame.math import Vector2
-
 from jeu import config
-
 
 class _Sprites:
     """Encapsule les 4 sprites directionnels et leurs versions redimensionnées."""

@@ -1,6 +1,5 @@
 import pygame
 
-
 class Ecran:
     """Gère la fenêtre pygame: création, redimensionnement au ratio du monde."""
 

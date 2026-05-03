@@ -1,6 +1,5 @@
 import pygame
 
-
 class Debug:
     """Affichage debug : overlay fuchsia des murs + hitbox du perso + spawn + sortie.
 

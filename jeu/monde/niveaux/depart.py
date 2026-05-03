@@ -1,6 +1,5 @@
 from jeu.monde.niveau import Niveau
 
-
 class Depart(Niveau):
     def __init__(self):
         super().__init__(
