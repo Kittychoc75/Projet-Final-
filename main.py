@@ -8,7 +8,8 @@ Description : Inspiré du jeu Undertale, Pixel Fall est un jeu de plateforme 2D
               vaincre ou épargner des ennemis et compléter des quêtes 
               afin d'en sortir.
 Entrée : Le joueur utilise les touches fléchées pour se déplacer
-Sortie : Le joueur doit compléter des quêtes pour progresser"""
+Sortie : Le joueur doit compléter des quêtes pour progresser 
+"""
 
 import argparse
 import pygame
@@ -41,6 +42,7 @@ while jeu_actif:
 
     dt = horloge.tick(60)
     gameplay.mettre_a_jour(dt)
+    gameplay.gerer_evenements(evenement)
     pygame.display.update()
 
 pygame.quit()

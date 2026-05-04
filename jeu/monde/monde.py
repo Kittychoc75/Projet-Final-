@@ -8,7 +8,6 @@ class Monde:
     def __init__(self, surface):
         self.niveau = CHAINE[0]()
         self.image = self.niveau.image
-        self.camera = Vector2(0, 0)
         self.redimensionner(surface.get_size())
 
     @property
@@ -50,10 +49,6 @@ class Monde:
         self.niveau = classe_niveau()
         self.image = self.niveau.image
         self.redimensionner(taille_actuelle)
-
-    def suivre_joueur(self, position):
-        # Le monde remplit toujours la fenêtre — pas de scrolling.
-        self.camera.update(0, 0)
 
     def dessiner(self, surface):
         surface.blit(self.image, (0, 0))

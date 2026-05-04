@@ -2,12 +2,14 @@ from jeu.debug import Debug
 from jeu.entites import Perso
 from jeu.monde import Monde
 from jeu.monde.chaine import CHAINE
-
+from jeu.ui import UI 
 
 class Gameplay:
+    """ Gère la logique de jeu : transitions entre niveaux, interactions, etc"""
     def __init__(self, surface, debug=False):
         self.surface = surface
         self.monde = Monde(surface)
+        self.ui = UI()
         self.perso = Perso(self.monde.niveau.spawn.x, self.monde.niveau.spawn.y)
         self.perso.redimensionner(self.monde.echelle)
         self.debug = Debug(actif=debug)
@@ -25,10 +27,13 @@ class Gameplay:
     def mettre_a_jour(self, dt):
         self.perso.mouvement(dt, self.monde)
         self._verifier_transitions()
-        self.monde.suivre_joueur(self.perso.position)
         self.monde.dessiner(self.surface)
         self.perso.dessiner(self.surface)
         self.debug.dessiner(self.surface, self.monde, self.perso)
+        self.ui.dessiner(self.surface)
+
+    def gerer_evenements(self, evenement):
+        self.ui.gerer_clic(evenement)
 
     def _verifier_transitions(self):
         sortie = self.monde.niveau.sortie
@@ -45,6 +50,7 @@ class Gameplay:
                 self._effectuer_transition(suivant, vers_avant=True)
                 return
             self.fin_chaine = True
+
         # Spawn → niveau précédent
         elif on_spawn and not self._spawn_active:
             precedent = self._niveau_precedent()
