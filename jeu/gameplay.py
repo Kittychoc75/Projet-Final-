@@ -23,6 +23,7 @@ class Gameplay:
         self.surface = surface
         self.monde.redimensionner(surface.get_size())
         self.perso.redimensionner(self.monde.echelle)
+        self.ui.redimensionner(self.monde.echelle)
 
     def mettre_a_jour(self, dt):
         self.perso.mouvement(dt, self.monde)

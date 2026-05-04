@@ -39,10 +39,10 @@ while jeu_actif:
             jeu_actif = False
         elif evenement.type == pygame.VIDEORESIZE:
             surface = ecran.appliquer_taille(evenement.size)
+        gameplay.gerer_evenements(evenement)
 
     dt = horloge.tick(60)
     gameplay.mettre_a_jour(dt)
-    gameplay.gerer_evenements(evenement)
     pygame.display.update()
 
 pygame.quit()
