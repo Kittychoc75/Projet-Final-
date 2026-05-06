@@ -6,12 +6,12 @@ import shutil
 
 pygame.init()
 
-# Configuration de la fenêtre de jeu
+#Configuration de la fenêtre de jeu
 largeur, hauteur = 1000, 570
 ecran = pygame.display.set_mode((largeur, hauteur))
 pygame.display.set_caption("Pixel Fall")
 
-# Les couleurs qu'on va utiliser (format RGB)
+#Couleurs
 BLANC = (255, 255, 255)  
 NOIR = (0, 0, 0) 
 GRIS = (200, 200, 200)  
@@ -31,9 +31,9 @@ def bouton_clique(bouton, pos):
 arriere_plan = pygame.image.load("images/fond_menu.JPG")  
 arriere_plan = pygame.transform.scale(arriere_plan, (largeur, hauteur))  
 
-# Les polices pour écrire du texte
-police = pygame.font.Font(None, 36)  
-petite_police = pygame.font.Font(None, 24)  
+#Les polices pour écrire du texte
+police = pygame.font.Font("PIXELADE.TTF", 26)
+police_bouton = pygame.font.Font("PIXELADE.TTF", 28)  
 
 # Nos quatre boutons
 boutons = [
