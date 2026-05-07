@@ -15,6 +15,7 @@ import argparse
 import pygame
 from jeu import Ecran, Gameplay
 
+pygame.font.init()
 parseur = argparse.ArgumentParser(description="Pixel Fall")
 parseur.add_argument(
     "--debug",

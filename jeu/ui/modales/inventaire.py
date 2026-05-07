@@ -1,6 +1,7 @@
 # jeu/ui/modales/inventaire.py
 from jeu.ui.element import ElementUI
 from jeu.ui.modales.modale import Modale
+from jeu.ui.modales.jauge import Jauge
 
 
 class Inventaire(Modale):
@@ -10,3 +11,5 @@ class Inventaire(Modale):
             panneau=ElementUI("images/inventaire.png", (350, 130)),
             centree=True
         )
+
+
