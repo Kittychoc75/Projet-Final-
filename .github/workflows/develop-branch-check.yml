@@ -1,0 +1,23 @@
+name: Develop Branch Protection
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  validate-develop-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+
+          echo "Head branch: $BRANCH"
+
+          if [[ "$BRANCH" != feature/* ]]; then
+            echo "❌ Only feature/* branches can merge into develop"
+            exit 1
+          fi
+
+          echo "✅ Valid feature branch"

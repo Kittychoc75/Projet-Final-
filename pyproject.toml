@@ -1,0 +1,8 @@
+[project]
+name = "pixel-fall"
+version = "0.1.0"
+description = "Pixel Fall - jeu 2D développé avec pygame"
+requires-python = ">=3.9"
+dependencies = [
+    "pygame>=2.5.0",
+]
