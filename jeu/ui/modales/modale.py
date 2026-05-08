@@ -10,7 +10,7 @@ class Modale:
         self.panneau = panneau    # ElementUI
         self.vie = Jauge(100, 0, 100, (700, 250), 200, 30, (94, 199, 118), "VIE")  
         self.xp = Jauge(0, 0, 100, (700, 300), 200, 30, (255, 230, 123), "XP")    
-        self.sante = Jauge(0, -50, 50, (700, 350), 200, 30, (245, 121, 158), "SANTÉ")   
+        self.sante = Jauge(0, -100, 100, (700, 350), 200, 30, (245, 121, 158), "SANTÉ")   
         self.texte_informations = Label((680, 160), "INFORMATIONS")
         self.texte_inventaire = Label((377, 160), "INVENTAIRE")
         self.panneau.centree = centree
