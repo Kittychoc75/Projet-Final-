@@ -1,6 +1,9 @@
 from jeu.monde.niveau import Niveau
 
+
 class Depart(Niveau):
+    NOM = "depart"
+
     def __init__(self):
         super().__init__(
             chemin_image="images/debut.png",

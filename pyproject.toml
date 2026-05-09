@@ -5,4 +5,5 @@ description = "Pixel Fall - jeu 2D développé avec pygame"
 requires-python = ">=3.9"
 dependencies = [
     "pygame>=2.5.0",
+    "pyyaml>=6.0",
 ]

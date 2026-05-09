@@ -1,38 +1,50 @@
 # jeu/ui/modales/modale.py
 import pygame
-from jeu.ui.modales.jauge import Jauge
-from jeu.ui.modales.label import Label
-from jeu.ui.element import ElementUI
 
 class Modale:
-    def __init__(self, icone, panneau, centree=False):
-        self.icone = icone        # ElementUI
-        self.panneau = panneau    # ElementUI
-        self.vie = Jauge(100, 0, 100, (700, 250), 200, 30, (94, 199, 118), "VIE")  
-        self.xp = Jauge(0, 0, 100, (700, 300), 200, 30, (255, 230, 123), "XP")    
-        self.sante = Jauge(0, -100, 100, (700, 350), 200, 30, (245, 121, 158), "SANTÉ")   
-        self.texte_informations = Label((680, 160), "INFORMATIONS")
-        self.texte_inventaire = Label((377, 160), "INVENTAIRE")
-        self.panneau.centree = centree
+    def __init__(self, panneau, icone=None, centree=False):
+        self.icone = icone        # ElementUI | None — None = ouverture programmatique
+        self.panneau = panneau    # objet avec redimensionner(echelle) et dessiner(surface)
+        if hasattr(panneau, "centree"):
+            panneau.centree = centree
         self.ouvert = False
 
-    def gerer_clic(self, evenement):
+    @property
+    def bloque_jeu(self):
+        """True si la modale ouverte doit empêcher le perso de bouger. Surcharger au besoin."""
+        return False
+
+    def gerer_evenement(self, evenement):
+        if self.icone is None:
+            return
         if (evenement.type == pygame.MOUSEBUTTONUP
                 and evenement.button == 1
                 and self.icone.contient(evenement.pos)):
             self.ouvert = not self.ouvert
 
+    def mettre_a_jour(self, dt):
+        # À surcharger dans les sous-classes qui ont du contenu animé.
+        pass
+
     def redimensionner(self, echelle):
-        self.icone.redimensionner(echelle)
+        if self.icone is not None:
+            self.icone.redimensionner(echelle)
         self.panneau.redimensionner(echelle)
+        self.redimensionner_contenu(echelle)
+
+    def redimensionner_contenu(self, echelle):
+        # À surcharger dans les sous-classes pour propager le resize
+        # au contenu propre à chaque modale (jauges, labels, …).
+        pass
+
+    def dessiner_contenu(self, surface):
+        # À surcharger dans les sous-classes pour afficher
+        # le contenu propre à chaque modale (jauges, labels, …).
+        pass
 
     def dessiner(self, surface):
-        self.icone.dessiner(surface)
+        if self.icone is not None:
+            self.icone.dessiner(surface)
         if self.ouvert:
             self.panneau.dessiner(surface)
-            self.vie.dessiner(surface)  
-            self.xp.dessiner(surface)
-            self.sante.dessiner(surface)
-            self.texte_informations.dessiner(surface)
-            self.texte_inventaire.dessiner(surface)
-          
+            self.dessiner_contenu(surface)

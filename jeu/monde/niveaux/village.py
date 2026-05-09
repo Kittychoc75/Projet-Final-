@@ -1,6 +1,9 @@
 from jeu.monde.niveau import Niveau
 
+
 class Village(Niveau):
+    NOM = "village"
+
     def __init__(self):
         super().__init__(
             chemin_image="images/village.png",

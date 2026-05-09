@@ -1,12 +1,10 @@
 import pygame
 from pygame.math import Vector2
 
-from jeu.monde.chaine import CHAINE
-
 
 class Monde:
-    def __init__(self, surface):
-        self.niveau = CHAINE[0]()
+    def __init__(self, surface, niveau_initial):
+        self.niveau = niveau_initial()
         self.image = self.niveau.image
         self.redimensionner(surface.get_size())
 
@@ -50,5 +48,6 @@ class Monde:
         self.image = self.niveau.image
         self.redimensionner(taille_actuelle)
 
-    def dessiner(self, surface):
+    def dessiner(self, surface, scenario):
         surface.blit(self.image, (0, 0))
+        self.niveau.dessiner_sprites_carte(surface, self.echelle, scenario)

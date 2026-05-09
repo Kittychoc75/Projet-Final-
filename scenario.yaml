@@ -1,0 +1,117 @@
+# =====================================================================
+# scenario.yaml — script complet du jeu (dialogues, transitions, etc.)
+# =====================================================================
+#
+# MINI-GUIDE YAML
+# ---------------
+# - Indentation : 2 espaces, JAMAIS de tabulations.
+# - Liste : chaque élément précédé de '- ' (avec espace après le tiret).
+# - Liste vide : []
+# - Commentaire : ligne (ou fin de ligne) commençant par '#'.
+# - Texte sur plusieurs lignes :
+#     '>-' joint les lignes en une seule (les retours deviennent des espaces).
+#     '|'  préserve les retours à la ligne.
+#   Exemples :
+#     - >-
+#       Première phrase écrite
+#       sur plusieurs lignes mais lue d'un seul tenant.
+#     - |
+#       Ligne 1
+#       Ligne 2
+#
+# COMMENT FONCTIONNE LE SCÉNARIO
+# ------------------------------
+# - Chaque dialogue est lié à un (niveau, couleur). La couleur correspond à un
+#   blob peint dans le masque méta du niveau (cf. couleurs_meta.py).
+# - À l'entrée du perso sur un blob, le moteur prend le PREMIER dialogue de la
+#   liste dont les conditions passent (requiert / interdit).
+#   → l'ordre des dialogues compte : du plus spécifique au plus général.
+# - `pose_flags` ajoute des flags à la fin du dialogue. Les flags sont juste
+#   des étiquettes (chaînes) qui ouvrent ou ferment d'autres dialogues / sorties.
+# - `transitions` ajoute des conditions à la sortie d'un niveau (sinon libre).
+#   Si bloqué, un indice flottant s'affiche.
+#
+# COULEURS RECONNUES (cf. jeu/monde/couleurs_meta.py)
+#   spawn(vert) sortie(rouge) bleu(monstre) magenta(quete) cyan(dialogue) jaune(passage)
+# =====================================================================
+
+niveau_initial: depart
+
+# Ordre des niveaux : avancer = suivant, retour en arrière toujours libre.
+chaine: [depart, foret, village, ruines, temple]
+
+flags_initiaux: []
+
+# ---------------------------------------------------------------------
+# Personnages — réutilisables par plusieurs dialogues
+# ---------------------------------------------------------------------
+personnages:
+  atticus:
+    nom: Atticus
+    couleur_nom: [39, 163, 245]
+    sprite_carte: images/atticus.png
+    sprite_dialogue_1: images/pnj_atticus_1.png
+    sprite_dialogue_2: images/pnj_atticus_2.png
+    facteur_taille_carte: 0.4
+
+# ---------------------------------------------------------------------
+# Dialogues — ordre = priorité (premier dont les conditions passent)
+# ---------------------------------------------------------------------
+dialogues:
+  - id: atticus_intro
+    niveau: village
+    couleur: cyan
+    personnage: atticus
+    requiert: []
+    interdit: [atticus_parle]
+    pose_flags: [atticus_parle]
+    couleurs_speciales:
+      IL: [255, 60, 60]
+      LE: [255, 60, 60]
+      ChampiMagic: [0, 255, 120]
+    messages:
+      - >-
+        Holà l'ami ! T'es nouveau toi nan ? Moi c'est Atticus.
+        Ça faisait longtemps que personne n'était passé par ici.
+        D'où viens-tu ?
+      - "Ça me dit vaguement quelque chose."
+      - "Désolé j'étais dans mes pensées. Que cherches-tu ?"
+      - >-
+        Rentrer chez toi ? Cela semble compliqué. Mais tu peux toujours aller LE voir.
+        IL te laissera surement partir si tu restes fidèle à tes principes.
+        Pour cela tu dois te rendre dans le temple qui se trouve après les ruines.
+      - >-
+        C'est vrai j'oubliai : les portes vers les ruines puis vers le temple
+        ne s'ouvriront que si tu réponds aux attentes des habitants de ce monde.
+      - >-
+        J'aurais alors une requete à te faire. En ce moment, c'est pas la fete.
+        Le village tombe en ruine et j'ai vraiment très faim. Est-ce que tu pourrais
+        me rapporter un ChampiMagic dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000) ?
+      - >-
+        Tu ne comprends pas ? Je ne peux pas t'en dire plus car IL ne le tolèrerait pas
+        mais je peux te donner cet indice : chaque parenthèse correspond à un nombre
+        qui lui-meme correspond à une lettre de l'alphabet. À toi de traduire ces nombres écrits en BCG.
+
+  - id: atticus_attend
+    niveau: village
+    couleur: cyan
+    personnage: atticus
+    requiert: [atticus_parle]
+    interdit: []
+    pose_flags: []
+    couleurs_speciales:
+      IL: [255, 60, 60]
+      LE: [255, 60, 60]
+      ChampiMagic: [0, 255, 120]
+    messages:
+      - >-
+        T'as oublié ce que je t'ai dit ?
+        Va dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000).
+
+# ---------------------------------------------------------------------
+# Transitions — conditions pour sortir d'un niveau (par défaut : libre)
+# ---------------------------------------------------------------------
+transitions:
+  - niveau: village
+    requiert: [atticus_parle]
+    indice_echec: "Atticus a peut-être quelque chose à te dire d'abord."

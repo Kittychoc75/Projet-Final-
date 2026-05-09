@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 .claude
 /.idea/
+.DS_Store
+/sauvegardes/partie.json
