@@ -27,6 +27,10 @@ def main():
     print(f"  personnages    : {sorted(donnees.personnages.keys())}")
     print(f"  dialogues      : {[d.id for d in donnees.dialogues]}")
     print(f"  transitions    : {[t.niveau for t in donnees.transitions]}")
+    print(f"  monstres       : {sorted(donnees.monstres.keys())}")
+    print(f"  combats        : {[c.id for c in donnees.combats]}")
+    print(f"  objets         : {sorted(donnees.objets.keys())}")
+    print(f"  quetes         : {[q.id for q in donnees.quetes]}")
 
 
 if __name__ == "__main__":

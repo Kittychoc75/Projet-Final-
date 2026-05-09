@@ -109,16 +109,19 @@ class Niveau:
         return list(rects)
 
     def dessiner_sprites_carte(self, surface, echelle, scenario):
-        """Dessine les PNJ visibles selon le scenario, sur leur zone meta."""
+        """Dessine PNJ (cyan) ou objets de quête (magenta) sur leur zone meta."""
         for couleur_nom, zones in self.zones_par_couleur.items():
             if not zones:
                 continue
-            personnage = scenario.personnage_present(self.NOM, couleur_nom)
-            if personnage is None:
-                continue
             zone = zones[0]
             position = Vector2(zone.centerx, zone.bottom)
-            personnage.dessiner_sur_carte(surface, position, echelle)
+            personnage = scenario.personnage_present(self.NOM, couleur_nom)
+            if personnage is not None:
+                personnage.dessiner_sur_carte(surface, position, echelle)
+                continue
+            objet = scenario.objet_present(self.NOM, couleur_nom)
+            if objet is not None:
+                objet.dessiner_sur_carte(surface, position, echelle)
 
     @property
     def largeur(self):

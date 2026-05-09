@@ -54,6 +54,17 @@ personnages:
     sprite_dialogue_2: images/pnj_atticus_2.png
     facteur_taille_carte: 0.4
 
+  rollier:
+    nom: Monsieur Rollier
+    couleur_nom: [200, 130, 60]
+    sprite_carte: images/monsieur_rollier.png
+    # Tant qu'il n'y a pas de sprites distincts pour la bouche, on réutilise la même
+    # image pour les 2 frames du dialogue. À remplacer par pnj_rollier_1/2.png plus tard.
+    sprite_dialogue_1: images/monsieur_rollier.png
+    sprite_dialogue_2: images/monsieur_rollier.png
+    facteur_taille_carte: 0.4
+    toujours_visible: true   # reste sur la carte une fois la puff ramassée, mais inactif (plus de dialogue)
+
 # ---------------------------------------------------------------------
 # Dialogues — ordre = priorité (premier dont les conditions passent)
 # ---------------------------------------------------------------------
@@ -97,7 +108,7 @@ dialogues:
     couleur: cyan
     personnage: atticus
     requiert: [atticus_parle]
-    interdit: []
+    interdit: [champi_recolte]    # une fois le champi ramassé, Atticus se "désactive"
     pose_flags: []
     couleurs_speciales:
       IL: [255, 60, 60]
@@ -108,10 +119,199 @@ dialogues:
         T'as oublié ce que je t'ai dit ?
         Va dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000).
 
+  # --- Monsieur Rollier dans les ruines ---
+  - id: rollier_intro
+    niveau: ruines
+    couleur: cyan
+    personnage: rollier
+    requiert: []
+    interdit: [rollier_parle]
+    pose_flags: [rollier_parle]
+    couleurs_speciales:
+      Puff: [220, 180, 80]
+    messages:
+      - >-
+        Bienvenue, voyageur. Je suis Monsieur Rollier,
+        gardien de ces ruines.
+      - >-
+        Pour traverser les ruines et atteindre le temple,
+        il te faut une Puff.
+      - "Mais elle est gardée par une créature. Affronte-la d'abord."
+
+  - id: rollier_attend
+    niveau: ruines
+    couleur: cyan
+    personnage: rollier
+    requiert: [rollier_parle]
+    interdit: [puff_recolte]
+    pose_flags: []
+    couleurs_speciales:
+      Puff: [220, 180, 80]
+    messages:
+      - "Affronte la créature, puis ramène-moi la Puff."
+
+# ---------------------------------------------------------------------
+# Monstres — données réutilisables, référencées par les combats
+# ---------------------------------------------------------------------
+monstres:
+  bug:
+    nom: Bug
+    sprites: [images/dracofeu_1.png, images/dracofeu_2.png]
+    pv: 120
+    degats: 4
+    defense_duree: 260
+    spawn_min: 65
+    spawn_max: 95
+    nb_min: 1
+    nb_max: 1
+    v_min: 1.1
+    v_max: 1.7
+    periode_anim: 60
+
+  glitch:
+    nom: Glitch
+    sprites: [images/roudoudou_1.png, images/roudoudou_2.png]
+    pv: 150
+    degats: 5
+    defense_duree: 280
+    spawn_min: 60
+    spawn_max: 90
+    nb_min: 1
+    nb_max: 2
+    v_min: 1.2
+    v_max: 1.9
+    periode_anim: 60
+
+  daemon:
+    nom: Daemon
+    sprites: [images/tiplouf_1.png, images/tiplouf_2.png]
+    pv: 220
+    degats: 7
+    defense_duree: 320
+    spawn_min: 40
+    spawn_max: 65
+    nb_min: 2
+    nb_max: 3
+    v_min: 1.5
+    v_max: 2.5
+    periode_anim: 60
+
+  kernel_panic:
+    nom: Kernel Panic
+    sprites: [images/tiplouf_1.png, images/tiplouf_2.png]
+    pv: 320
+    degats: 9
+    defense_duree: 360
+    spawn_min: 30
+    spawn_max: 50
+    nb_min: 2
+    nb_max: 4
+    v_min: 1.9
+    v_max: 3.0
+    periode_anim: 60
+
+# ---------------------------------------------------------------------
+# Objets — référencés par les quêtes
+# ---------------------------------------------------------------------
+objets:
+  champi_magic:
+    nom: ChampiMagic
+    sprite: images/champignon.png
+    facteur_taille_carte: 0.5
+    cache_sur_carte: true   # invisible — le joueur doit décoder l'indice d'Atticus pour trouver
+
+  puff:
+    nom: Puff
+    sprite: images/puff.png
+    facteur_taille_carte: 0.08   # asset très grand (680×1262), on réduit fortement
+
+# ---------------------------------------------------------------------
+# Quêtes — déclenchées à l'entrée d'un blob magenta (COULEUR_QUETE).
+# Effet : objet ajouté à l'inventaire + message affiché + flag posé.
+# ---------------------------------------------------------------------
+quetes:
+  - id: quete_foret_champi
+    niveau: foret
+    couleur: magenta
+    objet: champi_magic
+    message: "Tu as trouvé un ChampiMagic !"
+    requiert: [atticus_parle]      # impossible à trouver tant qu'Atticus n'a pas donné la quête
+    interdit: [champi_recolte]
+    pose_flags: [champi_recolte]
+
+  - id: quete_ruines_puff
+    niveau: ruines
+    couleur: magenta
+    objet: puff
+    message: "Tu as récupéré la Puff !"
+    requiert: [rollier_parle, combat_ruines_puff_done]   # garde du puff à battre d'abord
+    interdit: [puff_recolte]
+    pose_flags: [puff_recolte]
+
+# ---------------------------------------------------------------------
+# Combats — déclenchés à l'entrée d'un blob bleu (COULEUR_MONSTRE)
+# ---------------------------------------------------------------------
+combats:
+  # Combat optionnel en forêt : ne gate rien, juste si on tombe sur un blob bleu.
+  - id: combat_foret_bug
+    niveau: foret
+    couleur: bleu
+    monstre: bug
+    requiert: []
+    interdit: [combat_foret_bug_done]
+    pose_flags_victoire: [combat_foret_bug_done]
+    pose_flags_epargne:  [combat_foret_bug_done, foret_paix]
+
+  # Combat de passage avant la sortie du village : 3e condition pour avancer.
+  - id: combat_village_passage
+    niveau: village
+    couleur: jaune
+    monstre: daemon
+    requiert: []
+    interdit: [combat_village_passage_done]
+    pose_flags_victoire: [combat_village_passage_done]
+    pose_flags_epargne:  [combat_village_passage_done]
+
+  # Combat-gardien de la Puff (ruines). Posté sur le MÊME blob magenta que la quête →
+  # marcher sur la zone enclenche le combat ; après victoire, la quête se déclenche
+  # sur la même zone (puff ramassable).
+  - id: combat_ruines_puff
+    niveau: ruines
+    couleur: magenta
+    monstre: glitch
+    requiert: [rollier_parle]    # impossible à déclencher tant que Rollier n'a pas parlé
+    interdit: [combat_ruines_puff_done]
+    pose_flags_victoire: [combat_ruines_puff_done]
+    pose_flags_epargne:  [combat_ruines_puff_done]
+
+  # Combat-passage avant la sortie des ruines (parallèle à combat_village_passage).
+  - id: combat_ruines_passage
+    niveau: ruines
+    couleur: jaune
+    monstre: daemon
+    requiert: []
+    interdit: [combat_ruines_passage_done]
+    pose_flags_victoire: [combat_ruines_passage_done]
+    pose_flags_epargne:  [combat_ruines_passage_done]
+
 # ---------------------------------------------------------------------
 # Transitions — conditions pour sortir d'un niveau (par défaut : libre)
 # ---------------------------------------------------------------------
 transitions:
+  # Sortie du village : nécessite le dialogue, le champi, et le combat passage.
+  # `indices_par_flag` donne un message ciblé selon ce qui manque.
   - niveau: village
-    requiert: [atticus_parle]
-    indice_echec: "Atticus a peut-être quelque chose à te dire d'abord."
+    requiert: [atticus_parle, champi_recolte, combat_village_passage_done]
+    indice_echec: "Tu n'es pas encore prêt à quitter le village."
+    indices_par_flag:
+      atticus_parle: "Tu devrais parler à Atticus d'abord."
+      champi_recolte: "Atticus attend toujours son ChampiMagic..."
+      combat_village_passage_done: "Une créature garde la sortie. Affronte-la."
+
+  - niveau: ruines
+    requiert: [rollier_parle, puff_recolte, combat_ruines_passage_done]
+    indice_echec: "Tu n'es pas encore prêt à quitter les ruines."
+    indices_par_flag:
+      rollier_parle: "Tu devrais parler à Monsieur Rollier d'abord."
+      puff_recolte: "Monsieur Rollier attend toujours sa Puff..."
+      combat_ruines_passage_done: "Une créature te barre la route. Affronte-la d'abord."

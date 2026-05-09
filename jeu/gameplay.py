@@ -1,20 +1,21 @@
 from jeu.debug import Debug
 from jeu.entites import Perso
+from jeu.joueur import Joueur
 from jeu.monde import Monde
 from jeu.monde.niveaux import PAR_NOM
 from jeu.ui import UI
 
 
 class Gameplay:
-    """Gère la logique de jeu : transitions entre niveaux, interactions, dialogues."""
+    """Gère la logique de jeu : transitions entre niveaux, interactions, dialogues, combats."""
 
     def __init__(self, surface, scenario, debug=False):
         self.scenario = scenario
         self.surface = surface
-        # Le monde démarre sur le niveau initial du scenario (ou Depart par défaut).
+        self.joueur = Joueur()
         niveau_initial = PAR_NOM.get(scenario.niveau_initial, PAR_NOM["depart"])
         self.monde = Monde(surface, niveau_initial)
-        self.ui = UI()
+        self.ui = UI(self.joueur, scenario)
         self.perso = Perso(self.monde.niveau.spawn.x, self.monde.niveau.spawn.y)
         self.perso.redimensionner(self.monde.echelle)
         self.debug = Debug(actif=debug)
@@ -36,7 +37,7 @@ class Gameplay:
     # --- Sauvegarde / chargement ---
 
     def etat(self):
-        """État sérialisable du jeu. Étendre ici quand on ajoutera l'inventaire, etc."""
+        """État sérialisable du jeu. Étendre ici quand on ajoutera l'inventaire d'objets, etc."""
         return {
             "niveau": self.monde.niveau.NOM,
             "perso": {
@@ -44,6 +45,7 @@ class Gameplay:
                 "y": float(self.perso.position.y),
                 "direction": self.perso.direction,
             },
+            "joueur": self.joueur.etat(),
             "flags": sorted(self.scenario.flags),
         }
 
@@ -59,6 +61,7 @@ class Gameplay:
         if "direction" in perso:
             self.perso.direction = perso["direction"]
         self.perso.redimensionner(self.monde.echelle)
+        self.joueur.appliquer_etat(etat.get("joueur") or {})
         self.scenario.flags = set(etat.get("flags") or [])
         # Edge-detection : on considère le perso comme "déjà sur" tout marqueur,
         # pour ne pas re-déclencher de transition à la première frame post-load.
@@ -115,26 +118,73 @@ class Gameplay:
         self._sortie_active = on_sortie
         self._spawn_active = on_spawn
 
-        self._verifier_dialogues()
+        self._verifier_zones()
 
-    def _verifier_dialogues(self):
+    def _verifier_zones(self):
+        """Détecte les collisions avec les zones meta et déclenche dialogue / combat selon la couleur."""
         niveau = self.monde.niveau
         for couleur, zones in niveau.zones_par_couleur.items():
             for i, zone in enumerate(zones):
                 chevauche = self.perso.hitbox.colliderect(zone)
                 key = (couleur, i)
                 if chevauche and not self._zones_actives.get(key, False):
-                    dialogue = self.scenario.dialogue_a_declencher(niveau.NOM, couleur)
-                    if dialogue is not None:
-                        self.ui.declencher_dialogue(dialogue)
+                    self._declencher_zone(niveau.NOM, couleur)
                 self._zones_actives[key] = chevauche
 
+    def _declencher_zone(self, nom_niveau, couleur):
+        """Sans hardcode couleur→type : on demande au scenario quoi déclencher."""
+        d = self.scenario.dialogue_a_declencher(nom_niveau, couleur)
+        if d is not None:
+            self.ui.declencher_dialogue(d)
+            return
+        c = self.scenario.combat_a_declencher(nom_niveau, couleur)
+        if c is not None:
+            self.ui.declencher_combat(
+                c, on_termine=lambda res, cd=c: self._on_combat_termine(cd, res),
+            )
+            return
+        q = self.scenario.quete_a_declencher(nom_niveau, couleur)
+        if q is not None:
+            self._ramasser_quete(q)
+
+    def _ramasser_quete(self, quete):
+        """Ramasse l'objet d'une quête : ajout inventaire, message, flags."""
+        if quete.objet is not None:
+            self.joueur.ramasser(quete.objet.id)
+        if quete.message:
+            self.ui.afficher_indice(quete.message)
+        self.scenario.appliquer_resultat_quete(quete)
+
+    def _on_combat_termine(self, combat_data, resultat):
+        self.scenario.appliquer_resultat_combat(combat_data, resultat)
+        if resultat == "defaite":
+            # Checkpoint : HP rechargée + retour au spawn du niveau.
+            self.joueur.restaurer()
+            spawn = self.monde.niveau.spawn
+            self.perso.position.update(spawn.x, spawn.y)
+            self.perso.redimensionner(self.monde.echelle)
+            self._sortie_active = False
+            self._spawn_active = True
+            self._zones_actives = self._init_zones_actives()
+        else:
+            # Si le joueur reste sur le blob du combat, on veut que la prochaine
+            # action disponible (typiquement une quête au même endroit) puisse
+            # se déclencher immédiatement sans qu'il sorte/rentre dans la zone.
+            for key in list(self._zones_actives):
+                if key[0] == combat_data.couleur:
+                    self._zones_actives[key] = False
+
     def _effectuer_transition(self, classe, vers_avant):
-        """Tente une transition. Retourne True si effectuée, False si bloquée par le scenario."""
-        autorise, indice = self.scenario.transition_autorisee(self.monde.niveau.NOM)
-        if not autorise:
-            self.ui.afficher_indice(indice or "Quelque chose te retient ici.")
-            return False
+        """Tente une transition. Retourne True si effectuée, False si bloquée par le scenario.
+
+        Seule la progression forward est gated (impossible sinon d'aller chercher
+        un objet de quête dans un niveau précédent). Le retour-arrière est libre.
+        """
+        if vers_avant:
+            autorise, indice = self.scenario.transition_autorisee(self.monde.niveau.NOM)
+            if not autorise:
+                self.ui.afficher_indice(indice or "Quelque chose te retient ici.")
+                return False
 
         self.monde.changer_niveau(classe)
         if vers_avant:

@@ -5,9 +5,10 @@ from pygame.math import Vector2
 class Personnage:
     """Personnage non-joueur : sprite carte + sprites dialogue (bouche fermée/ouverte)."""
 
-    def __init__(self, nom, couleur_nom, sprite_carte, sprite_dialogue_1, sprite_dialogue_2, facteur_taille_carte=1.0):
+    def __init__(self, nom, couleur_nom, sprite_carte, sprite_dialogue_1, sprite_dialogue_2, facteur_taille_carte=1.0, toujours_visible=False):
         self.nom = nom
         self.couleur_nom = couleur_nom
+        self.toujours_visible = toujours_visible
         origine = pygame.image.load(sprite_carte).convert_alpha()
         if facteur_taille_carte != 1.0:
             w = max(1, int(origine.get_width() * facteur_taille_carte))
