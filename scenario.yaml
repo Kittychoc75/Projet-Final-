@@ -154,8 +154,8 @@ dialogues:
     couleur: cyan
     personnage: atticus
     requiert: [atticus_parle, champi_recolte]
-    interdit: [combat_village_passage]    
-    pose_flags: [atticus atticus_remerciement]
+    interdit: [combat_village_passage_done]    
+    pose_flags: [atticus_remerciement]
     couleurs_speciales:
       ChampiMagic: [143, 222, 93]
     messages:
@@ -168,10 +168,10 @@ dialogues:
     niveau: village
     couleur: cyan
     personnage: atticus
-    requiert: [atticus_parle, champi_recolte, combat_village_passage_done]
+    requiert: [atticus_parle, combat_village_passage_done]
     interdit: []    
-    pose_flags: [atticus_parle]
-    couleurs_speciales:
+    pose_flags: []
+    couleurs_speciales: {}
     messages:
       - >-
         Miam ! C'est délicieux ! Laisse-moi manger.
@@ -231,9 +231,9 @@ dialogues:
     niveau: ruines
     couleur: cyan
     personnage: rollier
-    requiert: [rollier_parle, combat_ruines_puff_done, puff_recolte]
-    interdit: [combat_ruines_passage]
-    pose_flags: [rollier_parle]
+    requiert: [rollier_parle, combat_ruines_puff_done]
+    interdit: [combat_ruines_passage_done]
+    pose_flags: [rollier_remerciement]
     couleurs_speciales:
       PUFF: [143, 222, 93]
       PUUUUUUUUUUFF: [143, 222, 93] 
@@ -248,9 +248,9 @@ dialogues:
     niveau: ruines
     couleur: cyan
     personnage: rollier
-    requiert: [rollier_parle, puff_recolte, combat_ruines_puff_done, combat_ruines_passage_done]
+    requiert: [rollier_parle, combat_ruines_passage_done]
     interdit: []
-    pose_flags: [rollier_parle]
+    pose_flags: []
     couleurs_speciales:
       PUFF: [143, 222, 93]
       PUUUUUUUUUUFF: [143, 222, 93]
@@ -266,13 +266,13 @@ dialogues:
     personnage: solaris
     requiert: []
     interdit: [solaris_parle]
-    pose_flags: [solaris_parle]
+    pose_flags: [solaris_parle, combat_temple_fin]
     couleurs_speciales:
       SOLARIS LE TOUT PUISSANT: [182, 181, 249]
     messages:
       - >-
         Comment est-ce possible ? Un humain ici ?! Comment oses-tu pénétrer dans mon royaume ?! 
-        Ne sais-tu pas qui je suis ? Moi, Maître de ces lieux, SOLARIS LE TOUT PUISSANT. 
+        Ne sais-tu pas qui je suis ? Moi, Maitre de ces lieux, SOLARIS LE TOUT PUISSANT. 
       - >-
         Tu ne rentreras jamais chez toi. Ton sort est scellé. Choisir ne servira à rien.
   
@@ -362,10 +362,10 @@ monstres:
     defense_duree: 360
     spawn_min: 60
     spawn_max: 90
-    nb_min: 1
-    nb_max: 2
-    v_min: 1.2
-    v_max: 1.9
+    nb_min: 3
+    nb_max: 4
+    v_min: 1.5
+    v_max: 2.5
     periode_anim: 60
 
 # ---------------------------------------------------------------------
@@ -447,7 +447,7 @@ combats:
     niveau: ruines
     couleur: jaune
     monstre: dracofeu
-    requiert: [rollier_remerciement, puff_recolte]
+    requiert: [rollier_remerciement]
     interdit: [combat_ruines_passage_done]
     pose_flags_victoire: [combat_ruines_passage_done]
     pose_flags_epargne:  [combat_ruines_passage_done]
