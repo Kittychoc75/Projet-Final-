@@ -14,11 +14,27 @@ VERSION = 1
 
 
 def existe():
+    """True si un fichier de sauvegarde est présent sur disque.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    bool
+         True si le fichier de sauvegarde existe.
+    """
     return _FICHIER.exists()
 
 
 def sauvegarder(etat):
-    """Écrit l'état dans le fichier de sauvegarde (créé si absent)."""
+    """Écrit l'état dans le fichier de sauvegarde (créé si absent).
+
+    Parameters
+    ----------
+    etat : dict
+           État sérialisable produit par `Gameplay.etat()`.
+    """
     _DOSSIER.mkdir(exist_ok=True)
     data = {
         "version": VERSION,
@@ -30,7 +46,16 @@ def sauvegarder(etat):
 
 
 def charger():
-    """Lit le fichier de sauvegarde. Retourne le dict d'état, ou None si absent/corrompu/incompatible."""
+    """Lit le fichier de sauvegarde. Retourne le dict d'état, ou None si absent/corrompu/incompatible.
+
+    Parameters
+    ----------
+
+    Returns
+    ----------
+    dict | None
+         Dict d'état (sans version ni timestamp) ou None si rien d'utilisable.
+    """
     if not _FICHIER.exists():
         return None
     try:

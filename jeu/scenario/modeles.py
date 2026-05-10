@@ -5,6 +5,8 @@ from typing import Optional
 
 @dataclass
 class PersonnageData:
+    """Définition d'un PNJ : nom, couleur de nom et sprites carte/dialogue."""
+
     id: str
     nom: str
     couleur_nom: tuple
@@ -17,6 +19,8 @@ class PersonnageData:
 
 @dataclass
 class DialogueData:
+    """Dialogue déclenchable à (niveau, couleur) : messages + conditions de flags."""
+
     id: str
     niveau: str
     couleur: str
@@ -30,6 +34,8 @@ class DialogueData:
 
 @dataclass
 class TransitionData:
+    """Règle de passage vers le niveau suivant après `niveau` : flags requis/interdits + indices."""
+
     niveau: str
     requiert: list = field(default_factory=list)
     interdit: list = field(default_factory=list)
@@ -39,6 +45,8 @@ class TransitionData:
 
 @dataclass
 class MonstreData:
+    """Définition d'un monstre : sprites, PV, dégâts et paramètres de pattern de balles."""
+
     id: str
     nom: str
     sprites: list                   # liste de chemins
@@ -56,6 +64,8 @@ class MonstreData:
 
 @dataclass
 class ObjetData:
+    """Définition d'un objet ramassable : nom, sprite, visibilité sur la carte."""
+
     id: str
     nom: str
     sprite: str
@@ -65,6 +75,8 @@ class ObjetData:
 
 @dataclass
 class QueteData:
+    """Quête de ramassage : objet à (niveau, couleur), message + conditions de flags."""
+
     id: str
     niveau: str
     couleur: str
@@ -77,6 +89,8 @@ class QueteData:
 
 @dataclass
 class CombatData:
+    """Combat déclenchable à (niveau, couleur) contre un monstre : flags victoire/épargne."""
+
     id: str
     niveau: str
     couleur: str

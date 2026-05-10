@@ -3,21 +3,30 @@ import pygame
 
 
 class BarreTiming:
+    """Curseur en va-et-vient horizontal ; un tir bien timé fait le maximum de dégâts."""
+
     ZONE_CIBLE_PX = 20  # largeur de la zone "BON" au centre
     VITESSE = 3         # px par frame
 
     def __init__(self, rect):
-        """ 
-        --"""
+        """Initialise le curseur à gauche du `rect`, vitesse vers la droite.
+
+        Parameters
+        ----------
+        rect : pygame.Rect
+               Rect dans lequel le curseur fait des allers-retours.
+        """
         self.rect = rect
         self._x = float(rect.left)
         self._vx = float(self.VITESSE)
 
     def reset(self):
+        """Replace le curseur à gauche et remet la vitesse vers la droite."""
         self._x = float(self.rect.left)
         self._vx = float(self.VITESSE)
 
     def mettre_a_jour(self):
+        """Avance le curseur ; rebondit aux bords du rect."""
         self._x += self._vx
         if self._x <= self.rect.left:
             self._x = float(self.rect.left)
@@ -27,10 +36,26 @@ class BarreTiming:
             self._vx = -abs(self._vx)
 
     def reussi(self):
-        """True si le curseur est dans la zone cible centrale au moment du clic."""
+        """True si le curseur est dans la zone cible centrale au moment du clic.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        bool
+             True si le tir est bien timé.
+        """
         return abs(self._x - self.rect.centerx) <= self.ZONE_CIBLE_PX // 2
 
     def dessiner(self, surface):
+        """Dessine la barre, la zone cible centrale et le curseur (disque blanc).
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         BLANC = (255, 255, 255)
         pygame.draw.rect(surface, BLANC, self.rect, 2)
         # zone cible au centre

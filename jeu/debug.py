@@ -1,3 +1,4 @@
+"""Overlay debug : dessine murs, hitbox, spawn et sortie quand `--debug` est passé."""
 import pygame
 
 class Debug:
@@ -12,9 +13,27 @@ class Debug:
     COULEUR_SORTIE = (255, 0, 0)
 
     def __init__(self, actif=False):
+        """Stocke l'état actif/inactif (positionné une fois via la CLI au lancement).
+
+        Parameters
+        ----------
+        actif : bool
+                True pour activer l'overlay debug.
+        """
         self.actif = actif
 
     def dessiner(self, surface, monde, perso):
+        """Superpose l'overlay debug sur `surface` (no-op si inactif).
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        monde : Monde
+                Monde courant (fournit l'image, le masque, l'échelle).
+        perso : Perso
+                Personnage joueur (fournit la hitbox).
+        """
         if not self.actif:
             return
 

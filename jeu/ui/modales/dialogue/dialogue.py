@@ -1,4 +1,5 @@
 # jeu/ui/modales/dialogue/dialogue.py
+"""Modale dialogue : panneau en bas, portrait à gauche, texte streamé caractère par caractère."""
 import pygame
 from pygame.math import Vector2
 
@@ -15,6 +16,13 @@ class _PanneauBas:
     MARGE_BAS = 20
 
     def __init__(self, chemin_image):
+        """Charge l'image de fond et la pré-scale à la taille logique du panneau.
+
+        Parameters
+        ----------
+        chemin_image : str
+                       Chemin du PNG de fond du panneau.
+        """
         origine = pygame.image.load(chemin_image).convert_alpha()
         self._base = pygame.transform.smoothscale(
             origine, (self.LARGEUR_LOGIQUE, self.HAUTEUR_LOGIQUE)
@@ -24,6 +32,13 @@ class _PanneauBas:
         self.echelle = Vector2(1, 1)
 
     def redimensionner(self, echelle):
+        """Re-scale l'image de fond et recalcule le rect.
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer.
+        """
         self.echelle = Vector2(echelle)
         l = max(1, int(self.LARGEUR_LOGIQUE * self.echelle.x))
         h = max(1, int(self.HAUTEUR_LOGIQUE * self.echelle.y))
@@ -31,12 +46,21 @@ class _PanneauBas:
         self.rect = self.image.get_rect()
 
     def dessiner(self, surface):
+        """Positionne le panneau midbottom (avec marge) puis le blitte.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         marge = int(self.MARGE_BAS * self.echelle.y)
         self.rect.midbottom = (surface.get_width() // 2, surface.get_height() - marge)
         surface.blit(self.image, self.rect.topleft)
 
 
 class ModaleDialogue(Modale):
+    """Modale plein-largeur en bas d'écran : portrait animé + texte streamé."""
+
     DELAI_FRAPPE = 25.0     # ms par caractère (effet machine à écrire)
     DELAI_BOUCHE = 100.0    # ms entre changements de sprite (anim bouche)
     LARGEUR_PORTRAIT = 0.30  # part horizontale réservée au portrait
@@ -45,6 +69,7 @@ class ModaleDialogue(Modale):
     COULEUR_TEXTE = (255, 255, 255)
 
     def __init__(self):
+        """Construit le panneau (zone_texte) ; aucune icône (ouverte par scénario)."""
         super().__init__(
             panneau=_PanneauBas("images/zone_texte.png"),
             icone=None,
@@ -59,6 +84,7 @@ class ModaleDialogue(Modale):
         self._invalider_caches()
 
     def _invalider_caches(self):
+        """Vide les caches de layout / police / portraits scalés."""
         self._layout = None
         self._hauteur_ligne = 0
         self._police = None
@@ -68,9 +94,26 @@ class ModaleDialogue(Modale):
 
     @property
     def bloque_jeu(self):
+        """True tant que la modale est ouverte (perso bloqué).
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        bool
+             True si la modale dialogue est ouverte.
+        """
         return self.ouvert
 
     def declencher(self, dialogue):
+        """Ouvre la modale sur le premier message du `Dialogue` fourni.
+
+        Parameters
+        ----------
+        dialogue : Dialogue
+                   Dialogue runtime à jouer.
+        """
         dialogue.reinitialiser()
         self.dialogue = dialogue
         self._chars_visibles = 0
@@ -81,6 +124,13 @@ class ModaleDialogue(Modale):
         self.ouvert = True
 
     def gerer_evenement(self, evenement):
+        """Espace / Entrée / clic gauche → avance dans le dialogue.
+
+        Parameters
+        ----------
+        evenement : pygame.event.Event
+                    Événement pygame courant.
+        """
         if not self.ouvert or self.dialogue is None:
             return
         avancer = (
@@ -93,6 +143,7 @@ class ModaleDialogue(Modale):
             self._avancer()
 
     def _avancer(self):
+        """Si streaming en cours : complète le message. Sinon : passe au suivant ou ferme."""
         message = self.dialogue.message_courant()
         if self._chars_visibles < len(message):
             # 1er clic : on saute le streaming, on affiche tout le message
@@ -109,6 +160,13 @@ class ModaleDialogue(Modale):
             self.dialogue = None
 
     def mettre_a_jour(self, dt):
+        """Avance le streaming texte (machine à écrire) et l'animation de bouche.
+
+        Parameters
+        ----------
+        dt : int
+             Durée écoulée depuis la dernière frame en millisecondes.
+        """
         if not self.ouvert or self.dialogue is None:
             return
         message = self.dialogue.message_courant()
@@ -124,10 +182,24 @@ class ModaleDialogue(Modale):
             self._bouche_ouverte = (not self._bouche_ouverte) if en_frappe else False
 
     def redimensionner_contenu(self, echelle):
+        """Mémorise l'échelle et invalide les caches (layout + portraits).
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer.
+        """
         self._echelle = Vector2(echelle)
         self._invalider_caches()
 
     def dessiner_contenu(self, surface):
+        """Dessine portrait à gauche + texte streamé à droite dans le panneau.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         if self.dialogue is None:
             return
         rect = self.panneau.rect
@@ -159,6 +231,13 @@ class ModaleDialogue(Modale):
         )
 
     def _ensurer_layout(self, largeur_max):
+        """(Re)calcule le layout du message courant si largeur a changé ou cache vide.
+
+        Parameters
+        ----------
+        largeur_max : int
+                      Largeur disponible pour le texte en pixels.
+        """
         if self._layout is not None and self._layout_largeur == largeur_max:
             return
         taille_police = max(1, int(self.TAILLE_POLICE * self._echelle.y))
@@ -173,6 +252,20 @@ class ModaleDialogue(Modale):
         self._layout_largeur = largeur_max
 
     def _sprite_courant(self, max_w, max_h):
+        """Retourne le sprite portrait (bouche ouverte/fermée) scalé aux dimensions données.
+
+        Parameters
+        ----------
+        max_w : int
+                Largeur maximale du portrait en pixels.
+        max_h : int
+                Hauteur maximale du portrait en pixels.
+
+        Returns
+        ----------
+        pygame.Surface
+               Portrait scalé prêt à être blitté.
+        """
         target = (max_w, max_h)
         if self._sprite_1_scaled is None or target != self._portrait_dim:
             self._portrait_dim = target
@@ -183,6 +276,22 @@ class ModaleDialogue(Modale):
 
     @staticmethod
     def _fit(sprite, max_w, max_h):
+        """Scale `sprite` pour tenir dans (max_w, max_h) en préservant le ratio.
+
+        Parameters
+        ----------
+        sprite : pygame.Surface
+                 Image à redimensionner.
+        max_w : int
+                Largeur maximale en pixels.
+        max_h : int
+                Hauteur maximale en pixels.
+
+        Returns
+        ----------
+        pygame.Surface
+               Image scalée.
+        """
         sw, sh = sprite.get_size()
         ratio = min(max_w / sw, max_h / sh)
         return pygame.transform.smoothscale(

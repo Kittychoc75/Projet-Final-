@@ -12,6 +12,24 @@ _TOKEN_PATTERN = re.compile(r"\([01\s]+\)|\S+")
 
 
 def _couleur(token, dict_couleurs, defaut, couleur_code):
+    """Couleur d'un token : `couleur_code` pour (0/1), surcharge par dict ou `defaut`.
+
+    Parameters
+    ----------
+    token : str
+            Mot à colorier.
+    dict_couleurs : dict
+                    Map mot → couleur RGB pour les mots spéciaux.
+    defaut : tuple[int, int, int]
+             Couleur RGB par défaut.
+    couleur_code : tuple[int, int, int]
+                   Couleur RGB pour les tokens type (0 1).
+
+    Returns
+    ----------
+    tuple[int, int, int]
+           Couleur RGB à utiliser pour rendre le token.
+    """
     if token.startswith("("):
         return couleur_code
     return dict_couleurs.get(token, defaut)
@@ -20,8 +38,27 @@ def _couleur(token, dict_couleurs, defaut, couleur_code):
 def calculer_layout(texte, police, largeur_max, dict_couleurs, couleur_defaut, espacement_ligne=4, couleur_code=COULEUR_CODE):
     """Pré-calcule positions et surfaces rendues de chaque token (avec word-wrap).
 
-    Retourne (layout, hauteur_ligne) où layout est une liste de dicts :
-    {token, surface, x, y, chars_avant}
+    Parameters
+    ----------
+    texte : str
+            Texte complet à afficher.
+    police : pygame.font.Font
+             Police utilisée pour le rendu.
+    largeur_max : int
+                  Largeur maximale d'une ligne en pixels.
+    dict_couleurs : dict
+                    Map mot → couleur RGB pour les mots spéciaux.
+    couleur_defaut : tuple[int, int, int]
+                     Couleur RGB par défaut des tokens.
+    espacement_ligne : int
+                       Pixels supplémentaires entre lignes.
+    couleur_code : tuple[int, int, int]
+                   Couleur RGB des tokens type (0 1).
+
+    Returns
+    ----------
+    tuple[list[dict], int]
+           Liste de dicts {token, surface, x, y, chars_avant} et hauteur d'une ligne.
     """
     tokens = _TOKEN_PATTERN.findall(texte)
     espace_w = police.size(" ")[0]
@@ -57,7 +94,23 @@ def calculer_layout(texte, police, largeur_max, dict_couleurs, couleur_defaut, e
 
 
 def dessiner_layout(surface, layout, police, rect, chars_visibles, hauteur_ligne):
-    """Dessine le layout pré-calculé, jusqu'à `chars_visibles` caractères du texte original."""
+    """Dessine le layout pré-calculé, jusqu'à `chars_visibles` caractères du texte original.
+
+    Parameters
+    ----------
+    surface : pygame.Surface
+              Surface d'affichage sur laquelle dessiner.
+    layout : list[dict]
+             Layout produit par `calculer_layout`.
+    police : pygame.font.Font
+             Police pour rendre la fin partielle d'un token.
+    rect : pygame.Rect
+           Zone de rendu (origine + clipping vertical).
+    chars_visibles : int
+                     Nombre de caractères du texte d'origine à afficher.
+    hauteur_ligne : int
+                    Hauteur d'une ligne en pixels.
+    """
     for entree in layout:
         if entree["y"] + hauteur_ligne > rect.height:
             break

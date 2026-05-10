@@ -8,6 +8,7 @@ from jeu.scenario.chargeur import ScenarioInvalide, charger
 
 
 def main():
+    """Point d'entrée CLI : charge `chemin` (ou scenario.yaml par défaut) et affiche le résumé."""
     chemin = sys.argv[1] if len(sys.argv) > 1 else "scenario.yaml"
     try:
         donnees = charger(chemin)

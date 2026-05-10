@@ -6,6 +6,9 @@ from jeu.ui import polices
 
 
 class IndiceFlottant:
+    """Bandeau noir avec texte blanc, affiché en haut de l'écran avec fondu de fin."""
+
+
     DUREE = 2500.0       # ms total
     FADE_OUT = 500.0     # ms du fondu de fin
     TAILLE_POLICE = 22
@@ -16,12 +19,20 @@ class IndiceFlottant:
     RAYON = 8
 
     def __init__(self):
+        """Initialise sans message affiché."""
         self.message = None
         self._restant = 0.0
         self._echelle = Vector2(1, 1)
         self._surface = None
 
     def afficher(self, message):
+        """Lance l'affichage de `message` pour DUREE ms (no-op si vide).
+
+        Parameters
+        ----------
+        message : str
+                  Texte à afficher dans le bandeau.
+        """
         if not message:
             return
         self.message = message
@@ -29,11 +40,25 @@ class IndiceFlottant:
         self._construire_surface()
 
     def redimensionner(self, echelle):
+        """Mémorise `echelle` et re-rend la surface si un message est actif.
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer.
+        """
         self._echelle = Vector2(echelle)
         if self.message:
             self._construire_surface()
 
     def mettre_a_jour(self, dt):
+        """Décrémente le timer ; libère la surface quand le message expire.
+
+        Parameters
+        ----------
+        dt : int
+             Durée écoulée depuis la dernière frame en millisecondes.
+        """
         if self._restant <= 0:
             return
         self._restant -= dt
@@ -42,6 +67,13 @@ class IndiceFlottant:
             self._surface = None
 
     def dessiner(self, surface):
+        """Blitte le bandeau centré en haut, avec fondu sur la fin.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         if self._surface is None:
             return
         rect = self._surface.get_rect()
@@ -56,6 +88,7 @@ class IndiceFlottant:
         surface.blit(self._surface, rect.topleft)
 
     def _construire_surface(self):
+        """Pré-rend la pastille noire arrondie + texte (cachée jusqu'au prochain `afficher`)."""
         taille = max(1, int(self.TAILLE_POLICE * self._echelle.y))
         police = polices.pixelade(taille)
         rendu = police.render(self.message, True, self.COULEUR)

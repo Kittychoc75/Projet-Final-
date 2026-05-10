@@ -35,9 +35,18 @@ TAILLE_ENNEMI = 150
 
 
 class ModaleCombat(Modale):
+    """Modale combat plein-écran : machine à états (choix/jauge/tir/défense/fin)."""
+
     OPACITE_OVERLAY = 160  # 0 = transparent, 255 = opaque
 
     def __init__(self, joueur):
+        """Initialise tous les sous-objets à None ; ils sont remplis dans `declencher`.
+
+        Parameters
+        ----------
+        joueur : Joueur
+                 Joueur dont on lit/écrit vie et xp.
+        """
         super().__init__(panneau=_PanneauNoir(), icone=None, centree=False)
         self.joueur = joueur
         self.combat_data = None
@@ -65,11 +74,29 @@ class ModaleCombat(Modale):
 
     @property
     def bloque_jeu(self):
+        """True tant que le combat est en cours (le perso ne doit pas bouger).
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        bool
+             True si la modale combat est ouverte.
+        """
         return self.ouvert
 
     # ---------------------------------------------------------------- declencher
     def declencher(self, combat_data, on_termine):
-        """combat_data porte le monstre + flags. on_termine(resultat: str) callback."""
+        """combat_data porte le monstre + flags. on_termine(resultat: str) callback.
+
+        Parameters
+        ----------
+        combat_data : CombatData
+                      Définition du combat (monstre + flags).
+        on_termine : callable
+                     Callback `(resultat: str) -> None` appelé à la fin.
+        """
         self.combat_data = combat_data
         self._on_termine = on_termine
         # PV combat partent du PV courant du joueur (persistant entre combats)
@@ -87,6 +114,7 @@ class ModaleCombat(Modale):
         self.ouvert = True
 
     def _construire_entites(self):
+        """Crée ennemi, cœur, barre et boutons à partir de `combat_data` + layout courant."""
         cfg = self.combat_data.monstre
         # Sprites ennemi
         sprites = [charger_avec_fallback(c, self._taille_ennemi()) for c in cfg.sprites]
@@ -110,6 +138,13 @@ class ModaleCombat(Modale):
 
     # ---------------------------------------------------------------- layout
     def redimensionner_contenu(self, echelle):
+        """Recalcule le layout et regénère les entités si un combat est ouvert.
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer.
+        """
         self._echelle = Vector2(echelle)
         self._calculer_layout()
         self._overlay = None  # taille a pu changer → force recréation
@@ -119,12 +154,20 @@ class ModaleCombat(Modale):
             self._construire_boutons()
 
     def _ensurer_overlay(self, surface):
+        """(Re)crée la surface d'overlay semi-transparente si elle n'est pas à la bonne taille.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage dont on lit la taille.
+        """
         taille = surface.get_size()
         if self._overlay is None or self._overlay.get_size() != taille:
             self._overlay = pygame.Surface(taille, pygame.SRCALPHA)
             self._overlay.fill((0, 0, 0, self.OPACITE_OVERLAY))
 
     def _calculer_layout(self):
+        """Calcule positions de l'ennemi, de l'arène, des barres et de la jauge selon `_echelle`."""
         sx, sy = self._echelle.x, self._echelle.y
         w = int(config.LARGEUR * sx)
         h = int(config.HAUTEUR * sy)
@@ -153,6 +196,7 @@ class ModaleCombat(Modale):
         }
 
     def _reappliquer_layout(self):
+        """Re-scale ennemi/cœur/barre selon le nouveau layout (après resize)."""
         self._ennemi.centre = self._layout["centre_ennemi"]
         # Re-scale ennemi
         sprites = [pygame.transform.smoothscale(s, self._taille_ennemi()) for s in self._sprites_origine_ennemi()]
@@ -165,19 +209,50 @@ class ModaleCombat(Modale):
         self._barre = BarreTiming(self._layout["barre_rect"])
 
     def _sprites_origine_ennemi(self):
+        """Recharge les sprites du monstre depuis disque (pour garder qualité au resize).
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        list[pygame.Surface]
+               Sprites scalés à la taille ennemi courante.
+        """
         # On recharge depuis disque pour garder la qualité au resize
         cfg = self.combat_data.monstre
         return [charger_avec_fallback(c, self._taille_ennemi()) for c in cfg.sprites]
 
     def _taille_ennemi(self):
+        """Taille (px) du sprite ennemi à l'échelle courante.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        tuple[int, int]
+               (largeur, hauteur) en pixels.
+        """
         s = max(1, int(TAILLE_ENNEMI * self._echelle.y))
         return (s, s)
 
     def _taille_coeur(self):
+        """Taille (px) du sprite cœur à l'échelle courante.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        tuple[int, int]
+               (largeur, hauteur) en pixels.
+        """
         s = max(1, int(TAILLE_COEUR * self._echelle.y))
         return (s, s)
 
     def _construire_boutons(self):
+        """Crée/repositionne les boutons Attaquer/Épargner/Continuer à l'échelle courante."""
         sx, sy = self._echelle.x, self._echelle.y
         w, h = self._layout.get("ecran", (config.LARGEUR, config.HAUTEUR))
         # Largeur/hauteur logique 180×55 pour les boutons
@@ -203,6 +278,13 @@ class ModaleCombat(Modale):
 
     # ---------------------------------------------------------------- événements
     def gerer_evenement(self, evenement):
+        """Route l'événement vers la phase courante (choix / jauge / fin).
+
+        Parameters
+        ----------
+        evenement : pygame.event.Event
+                    Événement pygame courant.
+        """
         if not self.ouvert:
             return
         if self._phase == "choix":
@@ -214,6 +296,13 @@ class ModaleCombat(Modale):
         # phase "tir" et "defense" : pas d'event direct (gestion auto dans mettre_a_jour)
 
     def _gerer_choix(self, e):
+        """Phase choix : clic Attaquer → jauge, clic Épargner → fin.
+
+        Parameters
+        ----------
+        e : pygame.event.Event
+            Événement pygame courant.
+        """
         if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             if self._bouton_attaquer.contient(e.pos):
                 self._barre.reset()
@@ -222,6 +311,13 @@ class ModaleCombat(Modale):
                 self._phase = "epargne"
 
     def _gerer_jauge(self, e):
+        """Phase jauge : clic ou Espace/Entrée tire (dégâts conditionnés au timing).
+
+        Parameters
+        ----------
+        e : pygame.event.Event
+            Événement pygame courant.
+        """
         clic = (e.type == pygame.MOUSEBUTTONDOWN and e.button == 1)
         espace = (e.type == pygame.KEYDOWN and e.key in (pygame.K_SPACE, pygame.K_RETURN))
         if not (clic or espace):
@@ -236,12 +332,26 @@ class ModaleCombat(Modale):
         self._phase = "tir"
 
     def _gerer_fin(self, e):
+        """Phase fin : clic sur Continuer ferme la modale avec le résultat.
+
+        Parameters
+        ----------
+        e : pygame.event.Event
+            Événement pygame courant.
+        """
         if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
             if self._bouton_continuer.contient(e.pos):
                 self._terminer(self._phase)
 
     # ---------------------------------------------------------------- update
     def mettre_a_jour(self, dt):
+        """Tick global : anime ennemi + cœur, puis délègue à la phase courante.
+
+        Parameters
+        ----------
+        dt : int
+             Durée écoulée depuis la dernière frame en millisecondes.
+        """
         if not self.ouvert:
             return
         self._temps += 1
@@ -255,6 +365,7 @@ class ModaleCombat(Modale):
             self._update_defense()
 
     def _update_tir(self):
+        """Avance le projectile du joueur, applique les dégâts à l'impact, enchaîne sur défense."""
         if self._tir is None:
             return
         self._tir.mettre_a_jour_haut()
@@ -276,6 +387,7 @@ class ModaleCombat(Modale):
             self._phase = "defense"
 
     def _update_defense(self):
+        """Phase défense : bouge le cœur, spawn/déplace les balles, gère collisions et timer."""
         cfg = self.combat_data.monstre
         touches = pygame.key.get_pressed()
         self._coeur.bouger(touches)
@@ -313,6 +425,13 @@ class ModaleCombat(Modale):
 
     # ---------------------------------------------------------------- terminer
     def _terminer(self, resultat):
+        """Ferme la modale, persiste les PV en cas de victoire, appelle le callback `on_termine`.
+
+        Parameters
+        ----------
+        resultat : str
+                   Résultat parmi 'victoire', 'epargne', 'defaite'.
+        """
         cb = self._on_termine
         self.ouvert = False
         self.combat_data = None
@@ -325,12 +444,26 @@ class ModaleCombat(Modale):
 
     # ---------------------------------------------------------------- rendu
     def dessiner(self, surface):
+        """Remplit le fond en noir et délègue le rendu à `dessiner_contenu` (no-op si fermé).
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         if not self.ouvert:
             return
         surface.fill(NOIR)
         self.dessiner_contenu(surface)
 
     def dessiner_contenu(self, surface):
+        """Aiguillage par phase : choix / combat (jauge|tir|defense) / fin.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         if self._phase == "choix":
             self._dessiner_choix(surface)
         elif self._phase in ("jauge", "tir", "defense"):
@@ -341,6 +474,13 @@ class ModaleCombat(Modale):
             self._dessiner_fin(surface, "Défaite")
 
     def _dessiner_choix(self, surface):
+        """Écran de pré-combat : nom du monstre, sprite, question, boutons Attaquer/Épargner.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         sy = self._echelle.y
         w = surface.get_width()
         h = surface.get_height()
@@ -362,6 +502,13 @@ class ModaleCombat(Modale):
         self._bouton_epargner.dessiner(surface)
 
     def _dessiner_combat(self, surface):
+        """Rendu des phases actives : ennemi, arène, projectiles, cœur, barres PV, UI phase.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         sx, sy = self._echelle.x, self._echelle.y
         arene = self._layout["arene"]
         # Ennemi en haut
@@ -395,6 +542,15 @@ class ModaleCombat(Modale):
             surface.blit(t, (w // 2 - t.get_width() // 2, self._barre.rect.top - int(28 * sy)))
 
     def _dessiner_fin(self, surface, titre):
+        """Écran de fin : `titre` centré (Victoire / Défaite / Tu l'as épargné) + bouton Continuer.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        titre : str
+                Texte de titre à afficher.
+        """
         sy = self._echelle.y
         w = surface.get_width()
         h = surface.get_height()
@@ -405,6 +561,31 @@ class ModaleCombat(Modale):
 
 
 def _dessiner_barre(surface, police, x, y, w, h, val, val_max, titre, droite=False):
+    """Dessine une barre de PV horizontale avec libellé (côté droite ou gauche).
+
+    Parameters
+    ----------
+    surface : pygame.Surface
+              Surface d'affichage sur laquelle dessiner.
+    police : pygame.font.Font
+             Police pour le libellé.
+    x : int
+        Position X du coin haut-gauche en pixels.
+    y : int
+        Position Y du coin haut-gauche en pixels.
+    w : int
+        Largeur de la barre en pixels.
+    h : int
+        Hauteur de la barre en pixels.
+    val : int
+          Valeur courante.
+    val_max : int
+              Valeur maximale.
+    titre : str
+            Libellé affiché à côté de la barre.
+    droite : bool
+             True pour aligner le libellé à droite, False à gauche.
+    """
     pygame.draw.rect(surface, (70, 0, 0), (x, y, w, h))
     ratio = 0 if val_max == 0 else max(0.0, min(1.0, val / val_max))
     pygame.draw.rect(surface, VERT, (x, y, int(w * ratio), h))
@@ -419,7 +600,21 @@ class _PanneauNoir:
     et fait sa propre composition (fond noir + entités). Ce panneau ne fait rien."""
 
     def redimensionner(self, echelle):
+        """No-op : la modale fait son propre rendu.
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Ignoré.
+        """
         pass
 
     def dessiner(self, surface):
+        """No-op : la modale fait son propre rendu.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Ignorée.
+        """
         pass

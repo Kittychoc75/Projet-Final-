@@ -16,6 +16,8 @@ from jeu.scenario.modeles import (
 
 @dataclass
 class DonneesScenario:
+    """Agrégat de toutes les données du scénario après parsing YAML (avant matérialisation)."""
+
     niveau_initial: str = "depart"
     chaine: list = field(default_factory=list)
     flags_initiaux: list = field(default_factory=list)
@@ -29,10 +31,22 @@ class DonneesScenario:
 
 
 class ScenarioInvalide(ValueError):
-    pass
+    """Levée par `charger()` quand le scénario contient des erreurs bloquantes."""
 
 
 def charger(chemin):
+    """Lit `chemin` (YAML), construit les dataclasses puis valide ; lève `ScenarioInvalide` sinon.
+
+    Parameters
+    ----------
+    chemin : str
+             Chemin du fichier YAML à charger.
+
+    Returns
+    ----------
+    DonneesScenario
+           Dataclass agrégeant toutes les données du scénario.
+    """
     with open(chemin, encoding="utf-8") as f:
         brut = yaml.safe_load(f) or {}
     donnees = _construire(brut)
@@ -41,6 +55,18 @@ def charger(chemin):
 
 
 def _construire(brut):
+    """Convertit le dict brut YAML en `DonneesScenario` (objets dataclass, refs résolues).
+
+    Parameters
+    ----------
+    brut : dict
+           Dictionnaire issu de `yaml.safe_load`.
+
+    Returns
+    ----------
+    DonneesScenario
+           Dataclass agrégeant toutes les sections du scénario.
+    """
     personnages = {}
     for pid, p in (brut.get("personnages") or {}).items():
         personnages[pid] = PersonnageData(
@@ -154,6 +180,13 @@ def _construire(brut):
 
 
 def _valider(donnees):
+    """Vérifie cohérence (références, doublons, flags orphelins). Lève si bloquant, sinon warne.
+
+    Parameters
+    ----------
+    donnees : DonneesScenario
+              Dataclass agrégeant les données à valider.
+    """
     erreurs = []
 
     if donnees.chaine and donnees.niveau_initial not in donnees.chaine:

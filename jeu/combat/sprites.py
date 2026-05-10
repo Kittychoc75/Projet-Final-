@@ -11,7 +11,20 @@ from jeu.ui import polices
 
 
 def charger_avec_fallback(chemin, taille):
-    """Charge l'image et la scale à `taille`. Si absente, retourne un carré gris labellisé."""
+    """Charge l'image et la scale à `taille`. Si absente, retourne un carré gris labellisé.
+
+    Parameters
+    ----------
+    chemin : str
+             Chemin du PNG à charger.
+    taille : tuple[int, int]
+             Dimensions cibles (largeur, hauteur) en pixels.
+
+    Returns
+    ----------
+    pygame.Surface
+           Image scalée ou placeholder gris.
+    """
     if os.path.exists(chemin):
         try:
             img = pygame.image.load(chemin)
@@ -23,6 +36,20 @@ def charger_avec_fallback(chemin, taille):
 
 
 def _placeholder(taille, label):
+    """Carré gris labellisé avec `label` (nom du fichier manquant) à `taille` donnée.
+
+    Parameters
+    ----------
+    taille : tuple[int, int]
+             Dimensions (largeur, hauteur) en pixels.
+    label : str
+            Texte à afficher au centre du carré.
+
+    Returns
+    ----------
+    pygame.Surface
+           Surface placeholder.
+    """
     surf = pygame.Surface(taille, pygame.SRCALPHA)
     surf.fill((80, 80, 80))
     pygame.draw.rect(surf, (180, 180, 180), surf.get_rect(), 2)

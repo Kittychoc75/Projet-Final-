@@ -11,5 +11,16 @@ _CHEMIN_PIXELADE = Path(__file__).resolve().parent.parent.parent / "fonts" / "PI
 
 
 def pixelade(taille):
-    """Retourne la police PIXELADE chargée à la taille demandée (en pixels)."""
+    """Retourne la police PIXELADE chargée à la taille demandée (en pixels).
+
+    Parameters
+    ----------
+    taille : int
+             Taille de la police en pixels.
+
+    Returns
+    ----------
+    pygame.font.Font
+           Police PIXELADE à la taille demandée.
+    """
     return pygame.font.Font(str(_CHEMIN_PIXELADE), max(1, int(taille)))

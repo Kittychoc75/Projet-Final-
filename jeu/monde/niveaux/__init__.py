@@ -1,3 +1,4 @@
+"""Niveaux concrets du jeu : ré-exporte les classes et expose `PAR_NOM` pour le scénario."""
 from jeu.monde.niveaux.depart import Depart
 from jeu.monde.niveaux.foret import Foret
 from jeu.monde.niveaux.ruines import Ruines

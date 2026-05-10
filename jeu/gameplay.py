@@ -10,6 +10,17 @@ class Gameplay:
     """Gère la logique de jeu : transitions entre niveaux, interactions, dialogues, combats."""
 
     def __init__(self, surface, scenario, debug=False):
+        """Construit le monde, le perso, l'UI et l'état de transitions à partir du scénario.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage courante.
+        scenario : Scenario
+                   Scénario chargé (chaîne de niveaux, dialogues, quêtes…).
+        debug : bool
+                True pour activer l'overlay debug.
+        """
         self.scenario = scenario
         self.surface = surface
         self.joueur = Joueur()
@@ -27,7 +38,16 @@ class Gameplay:
         self._zones_actives = self._init_zones_actives()
 
     def _init_zones_actives(self):
-        """Map (couleur_nom, blob_index) → bool (True = perso dessus la frame précédente)."""
+        """Map (couleur_nom, blob_index) → bool (True = perso dessus la frame précédente).
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        dict
+             Dictionnaire (couleur, index) → False pour chaque zone du niveau courant.
+        """
         return {
             (couleur, i): False
             for couleur, zones in self.monde.niveau.zones_par_couleur.items()
@@ -37,7 +57,16 @@ class Gameplay:
     # --- Sauvegarde / chargement ---
 
     def etat(self):
-        """État sérialisable du jeu. Étendre ici quand on ajoutera l'inventaire d'objets, etc."""
+        """État sérialisable du jeu. Étendre ici quand on ajoutera l'inventaire d'objets, etc.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        dict
+             Dictionnaire {niveau, perso, joueur, flags} prêt à être sauvegardé.
+        """
         return {
             "niveau": self.monde.niveau.NOM,
             "perso": {
@@ -50,7 +79,13 @@ class Gameplay:
         }
 
     def restaurer(self, etat):
-        """Applique un état chargé (issu de `etat()`) sur le gameplay."""
+        """Applique un état chargé (issu de `etat()`) sur le gameplay.
+
+        Parameters
+        ----------
+        etat : dict
+               Dictionnaire produit par `etat()` ou lu depuis la sauvegarde.
+        """
         nom_niveau = etat.get("niveau")
         classe = PAR_NOM.get(nom_niveau)
         if classe is not None and not isinstance(self.monde.niveau, classe):
@@ -71,12 +106,26 @@ class Gameplay:
         self.fin_chaine = False
 
     def redimensionner(self, surface):
+        """Propage le changement de taille à monde, perso et UI.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Nouvelle surface d'affichage.
+        """
         self.surface = surface
         self.monde.redimensionner(surface.get_size())
         self.perso.redimensionner(self.monde.echelle)
         self.ui.redimensionner(self.monde.echelle)
 
     def mettre_a_jour(self, dt):
+        """Tick : déplace le perso si l'UI ne bloque pas, vérifie transitions, redessine la scène.
+
+        Parameters
+        ----------
+        dt : int
+             Durée écoulée depuis la dernière frame en millisecondes.
+        """
         if not self.ui.bloque_jeu():
             self.perso.mouvement(dt, self.monde)
             self._verifier_transitions()
@@ -87,11 +136,19 @@ class Gameplay:
         self.ui.dessiner(self.surface)
 
     def gerer_evenements(self, evenement):
+        """Délègue les événements pygame à l'UI (clics, touches…).
+
+        Parameters
+        ----------
+        evenement : pygame.event.Event
+                    Événement pygame courant.
+        """
         self.ui.gerer_evenement(evenement)
 
     # --- Transitions de niveau ---
 
     def _verifier_transitions(self):
+        """Détecte les chevauchements perso↔sortie/spawn et lance le passage de niveau (edge-triggered)."""
         sortie = self.monde.niveau.sortie
         spawn = self.monde.niveau.spawn
         on_sortie = sortie is not None and self.perso.hitbox.colliderect(sortie)
@@ -132,7 +189,15 @@ class Gameplay:
                 self._zones_actives[key] = chevauche
 
     def _declencher_zone(self, nom_niveau, couleur):
-        """Sans hardcode couleur→type : on demande au scenario quoi déclencher."""
+        """Sans hardcode couleur→type : on demande au scenario quoi déclencher.
+
+        Parameters
+        ----------
+        nom_niveau : str
+                     Nom du niveau courant.
+        couleur : str
+                  Nom de couleur du marqueur (cyan/magenta/jaune/bleu).
+        """
         d = self.scenario.dialogue_a_declencher(nom_niveau, couleur)
         if d is not None:
             self.ui.declencher_dialogue(d)
@@ -148,7 +213,13 @@ class Gameplay:
             self._ramasser_quete(q)
 
     def _ramasser_quete(self, quete):
-        """Ramasse l'objet d'une quête : ajout inventaire, message, flags."""
+        """Ramasse l'objet d'une quête : ajout inventaire, message, flags.
+
+        Parameters
+        ----------
+        quete : QueteData
+                Quête à appliquer (objet + message + flags à poser).
+        """
         if quete.objet is not None:
             self.joueur.ramasser(quete.objet.id)
         if quete.message:
@@ -156,6 +227,15 @@ class Gameplay:
         self.scenario.appliquer_resultat_quete(quete)
 
     def _on_combat_termine(self, combat_data, resultat):
+        """Callback de fin de combat : applique les flags scénario et gère la défaite (checkpoint).
+
+        Parameters
+        ----------
+        combat_data : CombatData
+                      Définition du combat qui vient de se terminer.
+        resultat : str
+                   Résultat parmi 'victoire', 'epargne', 'defaite'.
+        """
         self.scenario.appliquer_resultat_combat(combat_data, resultat)
         if resultat == "defaite":
             # Checkpoint : HP rechargée + retour au spawn du niveau.
@@ -179,6 +259,18 @@ class Gameplay:
 
         Seule la progression forward est gated (impossible sinon d'aller chercher
         un objet de quête dans un niveau précédent). Le retour-arrière est libre.
+
+        Parameters
+        ----------
+        classe : type[Niveau]
+                 Classe du niveau cible à instancier.
+        vers_avant : bool
+                     True pour avancer (gated), False pour reculer (libre).
+
+        Returns
+        ----------
+        bool
+             True si la transition a été effectuée, False sinon.
         """
         if vers_avant:
             autorise, indice = self.scenario.transition_autorisee(self.monde.niveau.NOM)
@@ -203,9 +295,29 @@ class Gameplay:
         return True
 
     def _niveau_suivant(self):
+        """Classe du niveau suivant dans la chaîne du scénario, ou None si fin.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        type[Niveau] | None
+             Classe du niveau suivant, ou None si on est au dernier niveau.
+        """
         nom_suivant = self.scenario.niveau_suivant(self.monde.niveau.NOM)
         return PAR_NOM.get(nom_suivant) if nom_suivant else None
 
     def _niveau_precedent(self):
+        """Classe du niveau précédent dans la chaîne du scénario, ou None si début.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        type[Niveau] | None
+             Classe du niveau précédent, ou None si on est au premier niveau.
+        """
         nom_precedent = self.scenario.niveau_precedent(self.monde.niveau.NOM)
         return PAR_NOM.get(nom_precedent) if nom_precedent else None

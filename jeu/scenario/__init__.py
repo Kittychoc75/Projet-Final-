@@ -1,3 +1,4 @@
+"""Sous-package scénario : chargement YAML + moteur runtime (flags, déclencheurs)."""
 from jeu.scenario.chargeur import ScenarioInvalide
 from jeu.scenario.scenario import Scenario
 

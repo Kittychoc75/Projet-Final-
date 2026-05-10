@@ -1,4 +1,5 @@
 # jeu/ui/modales/inventaire/inventaire.py
+"""Modale inventaire : jauges vie/XP + grille de sprites d'objets ramassés."""
 import pygame
 from pygame.math import Vector2
 
@@ -10,6 +11,9 @@ from jeu.ui.modales.modale import Modale
 
 
 class Inventaire(Modale):
+    """Modale ouverte via l'icône en haut à gauche ; montre stats et objets du joueur."""
+
+
     # Coordonnées logiques de la grille d'objets (repère config.LARGEUR×config.HAUTEUR)
     GRILLE_X = 285
     GRILLE_Y = 200
@@ -19,6 +23,15 @@ class Inventaire(Modale):
     LIGNES = 4
 
     def __init__(self, joueur, scenario):
+        """Construit l'icône, le panneau, les jauges et les libellés.
+
+        Parameters
+        ----------
+        joueur : Joueur
+                 Source des stats (vie, xp) et de la liste d'objets.
+        scenario : Scenario
+                   Scénario chargé (fournit les sprites d'objets).
+        """
         super().__init__(
             icone=ElementUI("images/icon.png", (15, 15)),
             panneau=ElementUI("images/inventaire.png", (350, 130)),
@@ -35,10 +48,24 @@ class Inventaire(Modale):
         self._cache_sprites = {}
 
     def mettre_a_jour(self, dt):
+        """Synchronise les jauges avec les stats courantes du joueur.
+
+        Parameters
+        ----------
+        dt : int
+             Durée écoulée depuis la dernière frame en millisecondes.
+        """
         self.vie.mettre_a_jour(self.joueur.vie)
         self.xp.mettre_a_jour(self.joueur.xp)
 
     def redimensionner_contenu(self, echelle):
+        """Re-scale jauges et libellés ; invalide le cache de sprites d'objets.
+
+        Parameters
+        ----------
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer.
+        """
         self._echelle = Vector2(echelle)
         self.vie.redimensionner(echelle)
         self.xp.redimensionner(echelle)
@@ -47,6 +74,13 @@ class Inventaire(Modale):
         self._cache_sprites = {}  # invalidation au resize
 
     def dessiner_contenu(self, surface):
+        """Dessine jauges, libellés et grille d'objets sur le panneau ouvert.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         self.vie.dessiner(surface)
         self.xp.dessiner(surface)
         self.texte_informations.dessiner(surface)
@@ -54,6 +88,13 @@ class Inventaire(Modale):
         self._dessiner_objets(surface)
 
     def _dessiner_objets(self, surface):
+        """Affiche jusqu'à COLONNES×LIGNES sprites d'objets, dans l'ordre de ramassage.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        """
         if not self.joueur.objets:
             return
         sx, sy = self._echelle.x, self._echelle.y
@@ -74,6 +115,20 @@ class Inventaire(Modale):
             surface.blit(sprite, rect.topleft)
 
     def _sprite_pour_case(self, objet_id, case_px):
+        """Sprite de l'objet `objet_id` scalé pour tenir dans une case de `case_px` px (cache).
+
+        Parameters
+        ----------
+        objet_id : str
+                   Identifiant de l'objet dans le catalogue du scénario.
+        case_px : int
+                  Taille (largeur = hauteur) de la case en pixels.
+
+        Returns
+        ----------
+        pygame.Surface | None
+               Sprite scalé, ou None si l'objet est inconnu du scénario.
+        """
         cle = (objet_id, case_px)
         if cle in self._cache_sprites:
             return self._cache_sprites[cle]

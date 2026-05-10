@@ -1,3 +1,4 @@
+"""Classe de base `Niveau` : charge décor + masque de murs + masque méta (marqueurs colorés)."""
 import pygame
 from pygame.math import Vector2
 
@@ -38,6 +39,17 @@ class Niveau:
     TAILLE_MIN_TRIGGER = 20
 
     def __init__(self, chemin_image, chemin_mur, chemin_meta):
+        """Charge décor + masque mur + masque méta, vérifie cohérence, scanne marqueurs.
+
+        Parameters
+        ----------
+        chemin_image : str
+                       Chemin du PNG du décor.
+        chemin_mur : str
+                     Chemin du PNG du masque de murs (alpha = collision).
+        chemin_meta : str
+                      Chemin du PNG du masque méta (marqueurs colorés).
+        """
         self.image = pygame.image.load(chemin_image).convert_alpha()
         self.masque_image = pygame.image.load(chemin_mur).convert_alpha()
         meta = pygame.image.load(chemin_meta).convert_alpha()
@@ -58,6 +70,13 @@ class Niveau:
             )
 
     def _verifier_dimensions(self, meta):
+        """Vérifie que masque mur et masque méta ont la même taille que l'image.
+
+        Parameters
+        ----------
+        meta : pygame.Surface
+               Surface du masque méta à vérifier.
+        """
         if self.masque_image.get_size() != self.image.get_size():
             raise ValueError(
                 f"Dimensions masque mur {self.masque_image.get_size()} "
@@ -71,11 +90,41 @@ class Niveau:
 
     @staticmethod
     def _chercher_point(meta, couleur):
+        """Centre du bounding-rect des pixels `couleur` dans `meta`, ou None.
+
+        Parameters
+        ----------
+        meta : pygame.Surface
+               Surface du masque méta.
+        couleur : tuple[int, int, int]
+                  Couleur RGB du marqueur à chercher.
+
+        Returns
+        ----------
+        pygame.math.Vector2 | None
+               Centre du blob, ou None si aucun pixel de la couleur.
+        """
         rect = Niveau._bounding_rect(meta, couleur)
         return Vector2(rect.center) if rect else None
 
     @staticmethod
     def _chercher_zone(meta, couleur, taille_min=1):
+        """Bounding-rect des pixels `couleur`, élargi pour atteindre `taille_min` mini.
+
+        Parameters
+        ----------
+        meta : pygame.Surface
+               Surface du masque méta.
+        couleur : tuple[int, int, int]
+                  Couleur RGB du marqueur à chercher.
+        taille_min : int
+                     Taille minimale en pixels (le rect est gonflé si plus petit).
+
+        Returns
+        ----------
+        pygame.Rect | None
+               Rect (élargi si besoin), ou None si aucun pixel de la couleur.
+        """
         rect = Niveau._bounding_rect(meta, couleur)
         if rect is None:
             return None
@@ -88,6 +137,20 @@ class Niveau:
 
     @staticmethod
     def _bounding_rect(meta, couleur):
+        """Bounding-rect du premier blob de couleur (tolérance ±5 par canal), ou None.
+
+        Parameters
+        ----------
+        meta : pygame.Surface
+               Surface du masque méta.
+        couleur : tuple[int, int, int]
+                  Couleur RGB du marqueur à chercher.
+
+        Returns
+        ----------
+        pygame.Rect | None
+               Bounding-rect du premier blob, ou None si rien trouvé.
+        """
         masque = pygame.mask.from_threshold(
             meta, (*couleur, 255), threshold=(5, 5, 5, 0)
         )
@@ -96,6 +159,22 @@ class Niveau:
 
     @staticmethod
     def _chercher_zones(meta, couleur, taille_min=1):
+        """Liste de bounding-rects (tous les blobs `couleur`), élargis à `taille_min` mini.
+
+        Parameters
+        ----------
+        meta : pygame.Surface
+               Surface du masque méta.
+        couleur : tuple[int, int, int]
+                  Couleur RGB du marqueur à chercher.
+        taille_min : int
+                     Taille minimale en pixels (chaque rect gonflé si plus petit).
+
+        Returns
+        ----------
+        list[pygame.Rect]
+               Liste des bounding-rects (vide si rien trouvé).
+        """
         masque = pygame.mask.from_threshold(
             meta, (*couleur, 255), threshold=(5, 5, 5, 0)
         )
@@ -109,7 +188,17 @@ class Niveau:
         return list(rects)
 
     def dessiner_sprites_carte(self, surface, echelle, scenario):
-        """Dessine PNJ (cyan) ou objets de quête (magenta) sur leur zone meta."""
+        """Dessine PNJ (cyan) ou objets de quête (magenta) sur leur zone meta.
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+                  Surface d'affichage sur laquelle dessiner.
+        echelle : pygame.math.Vector2
+                  Facteur (sx, sy) à appliquer aux sprites.
+        scenario : Scenario
+                   Scénario courant (fournit personnages/objets à dessiner).
+        """
         for couleur_nom, zones in self.zones_par_couleur.items():
             if not zones:
                 continue
@@ -125,8 +214,28 @@ class Niveau:
 
     @property
     def largeur(self):
+        """Largeur de l'image du niveau en pixels source.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        int
+             Largeur en pixels.
+        """
         return self.image.get_width()
 
     @property
     def hauteur(self):
+        """Hauteur de l'image du niveau en pixels source.
+
+        Parameters
+        ----------
+
+        Returns
+        ----------
+        int
+             Hauteur en pixels.
+        """
         return self.image.get_height()
