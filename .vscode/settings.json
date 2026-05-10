@@ -1,0 +1,4 @@
+{
+    "editor.inlineSuggest.edits.showCollapsed": true,
+    "github.copilot.chat.languageContext.typescript.enabled": true
+}

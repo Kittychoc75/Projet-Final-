@@ -1,0 +1,16 @@
+name: Auto-delete branches into develop
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  delete-feature-branch:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop'
+    steps:
+      - name: Delete merged branch
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "Deleting branch $BRANCH on origin..."
+          git push origin --delete "$BRANCH"
