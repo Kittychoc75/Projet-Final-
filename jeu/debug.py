@@ -57,3 +57,4 @@ class Debug:
                 int(sortie.height * echelle.y),
             )
             pygame.draw.rect(surface, self.COULEUR_SORTIE, sortie_scale, width=2)
+

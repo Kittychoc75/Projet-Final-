@@ -63,7 +63,16 @@ personnages:
     sprite_dialogue_1: images/monsieur_rollier.png
     sprite_dialogue_2: images/monsieur_rollier.png
     facteur_taille_carte: 0.4
-    toujours_visible: true   # reste sur la carte une fois la puff ramassée, mais inactif (plus de dialogue)
+    
+  solaris:
+    nom: solaris
+    couleur_nom: [200, 130, 60]
+    sprite_carte: images/solaris.png
+    # Tant qu'il n'y a pas de sprites distincts pour la bouche, on réutilise la même
+    # image pour les 2 frames du dialogue. À remplacer par pnj_rollier_1/2.png plus tard.
+    sprite_dialogue_1: images/solaris.png
+    sprite_dialogue_2: images/solaris.png
+    facteur_taille_carte: 0.6
 
 # ---------------------------------------------------------------------
 # Dialogues — ordre = priorité (premier dont les conditions passent)
@@ -79,45 +88,93 @@ dialogues:
     couleurs_speciales:
       IL: [255, 60, 60]
       LE: [255, 60, 60]
-      ChampiMagic: [0, 255, 120]
+      ChampiMagic: [143, 222, 93]
+      (0110) (0001 0101) (0001 1000) (0101) (0010 0000): [255, 0, 255]
     messages:
       - >-
-        Holà l'ami ! T'es nouveau toi nan ? Moi c'est Atticus.
-        Ça faisait longtemps que personne n'était passé par ici.
-        D'où viens-tu ?
-      - "Ça me dit vaguement quelque chose."
-      - "Désolé j'étais dans mes pensées. Que cherches-tu ?"
+        Holà l’ami ! T’es nouveau toi nan ? Moi c’est Atticus. 
+        Ça faisait longtemps que personne n’était passé par ici. 
+        D’où viens-tu ?
+      - >- 
+        ...
+      - >- 
+        Ça me dit vaguement quelque chose.
+      - >- 
+        ...
+      - >- 
+        Désolé j'étais dans mes pensées. Que cherches-tu ?
+      - >- 
+        ...
       - >-
         Rentrer chez toi ? Cela semble compliqué. Mais tu peux toujours aller LE voir.
         IL te laissera surement partir si tu restes fidèle à tes principes.
         Pour cela tu dois te rendre dans le temple qui se trouve après les ruines.
       - >-
+        ...
+      - >-
         C'est vrai j'oubliai : les portes vers les ruines puis vers le temple
         ne s'ouvriront que si tu réponds aux attentes des habitants de ce monde.
+      - >- 
+        ...
       - >-
         J'aurais alors une requete à te faire. En ce moment, c'est pas la fete.
         Le village tombe en ruine et j'ai vraiment très faim. Est-ce que tu pourrais
         me rapporter un ChampiMagic dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000) ?
       - >-
+        ...
+      - >-
         Tu ne comprends pas ? Je ne peux pas t'en dire plus car IL ne le tolèrerait pas
         mais je peux te donner cet indice : chaque parenthèse correspond à un nombre
-        qui lui-meme correspond à une lettre de l'alphabet. À toi de traduire ces nombres écrits en BCG.
+        qui lui-meme correspond à une lettre de l'alphabet. 
+      - >-
+        À toi de traduire ces nombres écrits en BCD.
+      - >-
+        ...
+      - >-
+        T'as oublié ce que je t'ai dit ?
+        Va dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000).
 
   - id: atticus_attend
     niveau: village
     couleur: cyan
     personnage: atticus
     requiert: [atticus_parle]
-    interdit: [champi_recolte]    # une fois le champi ramassé, Atticus se "désactive"
+    interdit: [champi_recolte]   
     pose_flags: []
     couleurs_speciales:
-      IL: [255, 60, 60]
-      LE: [255, 60, 60]
-      ChampiMagic: [0, 255, 120]
+      ChampiMagic: [143, 222, 93]
+      (0110) (0001 0101) (0001 1000) (0101) (0010 0000): [255, 0, 255]
     messages:
       - >-
-        T'as oublié ce que je t'ai dit ?
-        Va dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000).
+        T'es encore là ? Va dans la (0110) (0001 0101) (0001 1000) (0101) (0010 0000)
+        me chercher mon champignon.
+  
+  - id: atticus_remerciement
+    niveau: village
+    couleur: cyan
+    personnage: atticus
+    requiert: [atticus_parle, champi_recolte]
+    interdit: [combat_village_passage]    
+    pose_flags: [atticus atticus_remerciement]
+    couleurs_speciales:
+      ChampiMagic: [143, 222, 93]
+    messages:
+      - >-
+        Ah t'as récupéré mon ChampiMagic ! Merci beaucoup ! 
+        La porte à droite est ouverte. 
+        Tu peux te rendre dans les ruines.
+  
+  - id: atticus_boucle
+    niveau: village
+    couleur: cyan
+    personnage: atticus
+    requiert: [atticus_parle, champi_recolte, combat_village_passage_done]
+    interdit: []    
+    pose_flags: [atticus_parle]
+    couleurs_speciales:
+    messages:
+      - >-
+        Miam ! C'est délicieux ! Laisse-moi manger.
 
   # --- Monsieur Rollier dans les ruines ---
   - id: rollier_intro
@@ -128,15 +185,34 @@ dialogues:
     interdit: [rollier_parle]
     pose_flags: [rollier_parle]
     couleurs_speciales:
-      Puff: [220, 180, 80]
+      PUFF: [143, 222, 93]
+      Psychose Ultraviolette Formaldéshydrogénation Fractoluminescente: [143, 222, 93]
     messages:
       - >-
-        Bienvenue, voyageur. Je suis Monsieur Rollier,
-        gardien de ces ruines.
+        *SOUPIRE* Oh la la... La matrice inversée ne fonctionne que sur l’algorithme
+        cubique du tableau de carneau sucré au sucre. 
       - >-
-        Pour traverser les ruines et atteindre le temple,
-        il te faut une Puff.
-      - "Mais elle est gardée par une créature. Affronte-la d'abord."
+        J’ai mélangé le tasty crousty de la fonction quadratique en concaténation logarithmique. 
+        Je suis fichu. La porte ne s’ouvrira jamais.
+      - >-
+        ...
+      - >-
+        Ah toi aussi tu veux rentrer dans le temple petit toutou. Ha Ha Ha… 
+      - >- 
+        ...
+      - >- 
+        HA HA HAAAAAAAAAAAAAAAAAAAAAAA !!! 
+      - >- 
+        ...
+      - >- 
+        Ummmh. Je ne peux rien faire depuis que j’ai perdu ma PUFF préférée. 
+        J’en ai besoin c’est VITAAAAAAAAAAAAL. Va chercher !
+      - >- 
+        ...
+      - >- 
+        C’est une blague ?! Tu ne sais pas ce que c’est qu’une PUFF ?! 
+        C’est pourtant évident tout est dans le nom : 
+        Psychose Ultraviolette Formaldéshydrogénation Fractoluminescente.
 
   - id: rollier_attend
     niveau: ruines
@@ -146,16 +222,98 @@ dialogues:
     interdit: [puff_recolte]
     pose_flags: []
     couleurs_speciales:
-      Puff: [220, 180, 80]
+      PUFF: [143, 222, 93] 
     messages:
-      - "Affronte la créature, puis ramène-moi la Puff."
+      - >- 
+        Stupide chien ! Va chercher ma PUFF. MA PUFF.
+  
+  - id: rollier_remerciement
+    niveau: ruines
+    couleur: cyan
+    personnage: rollier
+    requiert: [rollier_parle, combat_ruines_puff_done, puff_recolte]
+    interdit: [combat_ruines_passage]
+    pose_flags: [rollier_parle]
+    couleurs_speciales:
+      PUFF: [143, 222, 93]
+      PUUUUUUUUUUFF: [143, 222, 93] 
+      MA PSYCHOSE ULTRAVIOLETTE FORMALDÉSHYDROGÉNATION FRACTOLUMINESCENTE: [143, 222, 93] 
+    messages:
+      - >-
+        Ah Ma PUFF ! MA PUUUUUUUUUUFF ! 
+        MA PSYCHOSE ULTRAVIOLETTE FORMALDÉSHYDROGÉNATION FRACTOLUMINESCENTE !
+        Merci ! Merci ! MERCIIIIIIIIIIIIIII ! Je peux enfin résoudre mon problème !
+  
+  - id: rollier_boucle
+    niveau: ruines
+    couleur: cyan
+    personnage: rollier
+    requiert: [rollier_parle, puff_recolte, combat_ruines_puff_done, combat_ruines_passage_done]
+    interdit: []
+    pose_flags: [rollier_parle]
+    couleurs_speciales:
+      PUFF: [143, 222, 93]
+      PUUUUUUUUUUFF: [143, 222, 93]
+    messages:
+      - >-
+        MA PUFF ! MA PUUUUUUUUUUFF !
+
+# --- Solarius dans le temple --- 
+
+  - id: solaris_intro
+    niveau: temple 
+    couleur: cyan
+    personnage: solaris
+    requiert: []
+    interdit: [solaris_parle]
+    pose_flags: [solaris_parle]
+    couleurs_speciales:
+      SOLARIS LE TOUT PUISSANT: [182, 181, 249]
+    messages:
+      - >-
+        Comment est-ce possible ? Un humain ici ?! Comment oses-tu pénétrer dans mon royaume ?! 
+        Ne sais-tu pas qui je suis ? Moi, Maître de ces lieux, SOLARIS LE TOUT PUISSANT. 
+      - >-
+        Tu ne rentreras jamais chez toi. Ton sort est scellé. Choisir ne servira à rien.
+  
+  - id: solaris_fin
+    niveau: temple 
+    couleur: cyan
+    personnage: solaris
+    requiert: [combat_temple_fin_done]
+    interdit: []
+    pose_flags: []
+    couleurs_speciales: {}
+    messages:
+      - >-
+        …Alors c’est terminé… 
+      - >-
+        J’ai tout fait pour te pousser à bout.
+        Pour te perdre.
+        Pour te forcer à devenir quelqu’un d’autre.
+        Et maintenant… regarde-toi.
+      - >-
+        Tu pensais peut-être pouvoir arrêter cette misère…
+        sauver ce monde…
+        me sauver moi…
+      - >- 
+        Mais ce genre d’endroit finit toujours par changer ceux qui y restent trop longtemps.
+      - >-
+        C’est ironique, non ? À force de combattre la violence, on finit parfois par lui ressembler.
+        Peut-être que tu es encore libre.
+        Peut-être pas.
+      - >- 
+        Mais une chose est sûre.
+      - >- 
+        Tu ne seras jamais plus la même personne...
+ 
 
 # ---------------------------------------------------------------------
 # Monstres — données réutilisables, référencées par les combats
 # ---------------------------------------------------------------------
 monstres:
-  bug:
-    nom: Bug
+  dracofeu:
+    nom: Dracofeu
     sprites: [images/dracofeu_1.png, images/dracofeu_2.png]
     pv: 120
     degats: 4
@@ -168,8 +326,8 @@ monstres:
     v_max: 1.7
     periode_anim: 60
 
-  glitch:
-    nom: Glitch
+  roudoudou:
+    nom: Roudoudou
     sprites: [images/roudoudou_1.png, images/roudoudou_2.png]
     pv: 150
     degats: 5
@@ -182,8 +340,8 @@ monstres:
     v_max: 1.9
     periode_anim: 60
 
-  daemon:
-    nom: Daemon
+  tiplouf:
+    nom: Tiplouf
     sprites: [images/tiplouf_1.png, images/tiplouf_2.png]
     pv: 220
     degats: 7
@@ -195,19 +353,19 @@ monstres:
     v_min: 1.5
     v_max: 2.5
     periode_anim: 60
-
-  kernel_panic:
-    nom: Kernel Panic
-    sprites: [images/tiplouf_1.png, images/tiplouf_2.png]
-    pv: 320
+  
+  solaris:
+    nom: Solaris
+    sprites: [images/solaris.png, images/solaris.png]
+    pv: 250
     degats: 9
     defense_duree: 360
-    spawn_min: 30
-    spawn_max: 50
-    nb_min: 2
-    nb_max: 4
-    v_min: 1.9
-    v_max: 3.0
+    spawn_min: 60
+    spawn_max: 90
+    nb_min: 1
+    nb_max: 2
+    v_min: 1.2
+    v_max: 1.9
     periode_anim: 60
 
 # ---------------------------------------------------------------------
@@ -215,7 +373,7 @@ monstres:
 # ---------------------------------------------------------------------
 objets:
   champi_magic:
-    nom: ChampiMagic
+    nom: ChampiMagic      
     sprite: images/champignon.png
     facteur_taille_carte: 0.5
     cache_sur_carte: true   # invisible — le joueur doit décoder l'indice d'Atticus pour trouver
@@ -253,21 +411,21 @@ quetes:
 # ---------------------------------------------------------------------
 combats:
   # Combat optionnel en forêt : ne gate rien, juste si on tombe sur un blob bleu.
-  - id: combat_foret_bug
+  - id: combat_foret_roudoudou
     niveau: foret
     couleur: bleu
-    monstre: bug
+    monstre: roudoudou
     requiert: []
-    interdit: [combat_foret_bug_done]
-    pose_flags_victoire: [combat_foret_bug_done]
-    pose_flags_epargne:  [combat_foret_bug_done, foret_paix]
+    interdit: [combat_foret_roudoudou_done]
+    pose_flags_victoire: [combat_foret_roudoudou_done]
+    pose_flags_epargne:  [combat_foret_roudoudou_done]
 
   # Combat de passage avant la sortie du village : 3e condition pour avancer.
   - id: combat_village_passage
     niveau: village
     couleur: jaune
-    monstre: daemon
-    requiert: []
+    monstre: dracofeu
+    requiert: [atticus_remerciement]
     interdit: [combat_village_passage_done]
     pose_flags_victoire: [combat_village_passage_done]
     pose_flags_epargne:  [combat_village_passage_done]
@@ -278,7 +436,7 @@ combats:
   - id: combat_ruines_puff
     niveau: ruines
     couleur: magenta
-    monstre: glitch
+    monstre: tiplouf
     requiert: [rollier_parle]    # impossible à déclencher tant que Rollier n'a pas parlé
     interdit: [combat_ruines_puff_done]
     pose_flags_victoire: [combat_ruines_puff_done]
@@ -288,11 +446,21 @@ combats:
   - id: combat_ruines_passage
     niveau: ruines
     couleur: jaune
-    monstre: daemon
-    requiert: []
+    monstre: dracofeu
+    requiert: [rollier_remerciement, puff_recolte]
     interdit: [combat_ruines_passage_done]
     pose_flags_victoire: [combat_ruines_passage_done]
     pose_flags_epargne:  [combat_ruines_passage_done]
+  
+  # Combat de fin 
+  - id: combat_temple_fin
+    niveau: temple
+    couleur: cyan
+    monstre: solaris
+    requiert: [solaris_parle]
+    interdit: [combat_temple_fin_done]
+    pose_flags_victoire: [combat_temple_fin_done]
+    pose_flags_epargne:  [combat_temple_fin_done]
 
 # ---------------------------------------------------------------------
 # Transitions — conditions pour sortir d'un niveau (par défaut : libre)
@@ -315,3 +483,4 @@ transitions:
       rollier_parle: "Tu devrais parler à Monsieur Rollier d'abord."
       puff_recolte: "Monsieur Rollier attend toujours sa Puff..."
       combat_ruines_passage_done: "Une créature te barre la route. Affronte-la d'abord."
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

@@ -7,6 +7,8 @@ class BarreTiming:
     VITESSE = 3         # px par frame
 
     def __init__(self, rect):
+        """ 
+        --"""
         self.rect = rect
         self._x = float(rect.left)
         self._vx = float(self.VITESSE)
